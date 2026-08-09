@@ -313,7 +313,7 @@ export default function ElectionsPage() {
                     Ready to lock in your ballot?
                   </h4>
                   <p className="text-xs text-outline dark:text-gray-400 mt-0.5">
-                    Your voter hash: <span className="font-mono text-secondary dark:text-neon-saffron">{userProfile.membershipId}</span>
+                    Your voter hash: <span className="font-mono text-secondary dark:text-neon-saffron">{userProfile?.membershipId || 'IITR-SU-ANON'}</span>
                   </p>
                 </div>
 

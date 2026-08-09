@@ -186,17 +186,17 @@ export default function Home() {
                 {hasCreatedCard ? (
                   <div className="flex items-center space-x-4 bg-surface-container-low dark:bg-white/5 p-4 rounded-2xl border border-surface-container dark:border-white/5">
                     <img
-                      src={userProfile.avatar}
-                      alt={userProfile.name}
+                      src={userProfile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300'}
+                      alt={userProfile?.name || 'Student'}
                       className="w-14 h-14 rounded-xl object-cover ring-2 ring-primary/30 dark:ring-neon-saffron/40"
                     />
                     <div>
                       <h3 className="font-headline font-bold text-sm text-primary dark:text-white">
-                        {userProfile.name}
+                        {userProfile?.name}
                       </h3>
-                      <p className="text-xs text-outline dark:text-gray-400">{userProfile.rollNo}</p>
+                      <p className="text-xs text-outline dark:text-gray-400">{userProfile?.rollNo}</p>
                       <p className="text-[11px] text-secondary dark:text-neon-saffron font-medium mt-0.5">
-                        {userProfile.department}
+                        {userProfile?.department}
                       </p>
                     </div>
                   </div>

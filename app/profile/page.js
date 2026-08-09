@@ -271,17 +271,17 @@ export default function ProfilePage() {
 
               <div className="flex items-center space-x-4 bg-surface-container/60 dark:bg-white/5 p-4 rounded-2xl border border-surface-container-high dark:border-white/5">
                 <img
-                  src={userProfile.avatar}
-                  alt={userProfile.name}
+                  src={userProfile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300'}
+                  alt={userProfile?.name || 'Student'}
                   className="w-16 h-16 rounded-2xl object-cover ring-2 ring-neon-saffron shadow-md"
                 />
                 <div>
                   <h2 className="font-headline font-bold text-lg text-primary dark:text-white">
-                    {userProfile.name}
+                    {userProfile?.name}
                   </h2>
-                  <p className="text-xs text-outline dark:text-gray-300 font-mono">{userProfile.rollNo}</p>
+                  <p className="text-xs text-outline dark:text-gray-300 font-mono">{userProfile?.rollNo}</p>
                   <p className="text-xs text-secondary dark:text-neon-saffron font-medium mt-0.5">
-                    {userProfile.department}
+                    {userProfile?.department}
                   </p>
                 </div>
               </div>
@@ -289,17 +289,17 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-surface-container/60 dark:bg-white/5">
                   <p className="text-[10px] text-outline dark:text-gray-400">Membership ID</p>
-                  <p className="font-mono font-bold text-primary dark:text-white mt-0.5">{userProfile.membershipId}</p>
+                  <p className="font-mono font-bold text-primary dark:text-white mt-0.5">{userProfile?.membershipId}</p>
                 </div>
                 <div className="p-3 rounded-xl bg-surface-container/60 dark:bg-white/5">
                   <p className="text-[10px] text-outline dark:text-gray-400">Batch Year</p>
-                  <p className="font-bold text-primary dark:text-white mt-0.5">{userProfile.year}</p>
+                  <p className="font-bold text-primary dark:text-white mt-0.5">{userProfile?.year}</p>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-white text-center space-y-2 shadow-inner">
                 <QRCodeSVG
-                  value={`https://iitrungta.fun/verify?id=${userProfile.membershipId}&roll=${userProfile.rollNo}`}
+                  value={`https://iitrungta.fun/verify?id=${userProfile?.membershipId || ''}&roll=${userProfile?.rollNo || ''}`}
                   size={140}
                   className="mx-auto"
                 />
