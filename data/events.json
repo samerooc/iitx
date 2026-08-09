@@ -1,0 +1,32 @@
+[
+  {
+    "id": "e1",
+    "title": "Rungta Innovation Summit & Hackathon 2026",
+    "date": "August 18, 2026",
+    "time": "09:00 AM - 08:00 PM",
+    "venue": "Auditorium Hall A & Lab 4",
+    "category": "Technical",
+    "attendees": 142,
+    "description": "36-hour hackathon focused on AI solutions for campus sustainability and smart healthcare."
+  },
+  {
+    "id": "e2",
+    "title": "Inter-Department Cricket Tournament Final",
+    "date": "August 20, 2026",
+    "time": "04:00 PM onwards",
+    "venue": "Main Campus Sports Ground",
+    "category": "Sports",
+    "attendees": 310,
+    "description": "Final showdown between CSE Strikers and Mechanical Warriors. Refreshments served."
+  },
+  {
+    "id": "e3",
+    "title": "Union Open Mic & Cultural Jam Evening",
+    "date": "August 24, 2026",
+    "time": "06:30 PM - 09:30 PM",
+    "venue": "Open Air Theatre (OAT)",
+    "category": "Cultural",
+    "attendees": 225,
+    "description": "Music, poetry, stand-up comedy, and acoustic jam performances by students."
+  }
+]

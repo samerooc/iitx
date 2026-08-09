@@ -1,0 +1,46 @@
+[
+  {
+    "id": "r1",
+    "title": "Data Structures & Algorithms - Complete Formula & Code Sheet",
+    "category": "Academic Notes",
+    "department": "Computer Science & Engineering",
+    "author": "Prof. S. R. Varma",
+    "fileType": "PDF",
+    "fileSize": "3.4 MB",
+    "downloads": 1420,
+    "previewContent": "IIT Rungta - Department of Computer Science\nSubject: Data Structures & Algorithms (CS301)\n\nTopic 1: Time & Space Complexity Analysis\n- Asymptotic Notations: Big-O, Omega, Theta.\n- Master Theorem for Divide and Conquer recurrence relations.\n\nTopic 2: Trees & Balanced Binary Trees\n- AVL Tree rotation rules (LL, RR, LR, RL).\n- Red-Black tree properties and insertion node re-coloring rules."
+  },
+  {
+    "id": "r2",
+    "title": "Previous 5 Years GATE & Mid-Sem Question Papers (2021-2025)",
+    "category": "Exam Papers",
+    "department": "Computer Science & Engineering",
+    "author": "Student Academic Council",
+    "fileType": "ZIP",
+    "fileSize": "18.2 MB",
+    "downloads": 2890,
+    "previewContent": "Archive Includes:\n1. Mid-Sem 2024 Solution Keys\n2. End-Sem 2023 Solved Paper with Examiner Marking Scheme\n3. Practice Question Sets for Discrete Mathematics & OS."
+  },
+  {
+    "id": "r3",
+    "title": "Analog & Digital Electronics Lab Manual (2026 Edition)",
+    "category": "Lab Manuals",
+    "department": "Electrical & Communication Engg",
+    "author": "Lab Superintendent Office",
+    "fileType": "PDF",
+    "fileSize": "5.1 MB",
+    "downloads": 870,
+    "previewContent": "Experiment 1: Op-Amp Applications\n- Inverting and Non-inverting Amplifier configuration.\n- Designing Integrator and Differentiator circuits using IC 741.\n\nExperiment 2: Logic Gate Circuit Synthesis\n- K-Map minimization and circuit construction on breadboard."
+  },
+  {
+    "id": "r4",
+    "title": "Official Academic Curriculum & Credit Rules Handbook 2026",
+    "category": "Syllabus",
+    "department": "All Departments",
+    "author": "Academic Senate Office",
+    "fileType": "PDF",
+    "fileSize": "1.2 MB",
+    "downloads": 3410,
+    "previewContent": "IIT Rungta Academic Regulations Handbook 2026:\n- Minimum Attendance Requirement: 75% mandatory across all lecture/lab credits.\n- Grading System: Relative 10-point CPI scale.\n- Minor Degree & Honors Credit requirements."
+  }
+]

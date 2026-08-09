@@ -1,0 +1,41 @@
+[
+  {
+    "id": "hof-1",
+    "year": "2025 - 2026",
+    "name": "Vikramaditya Sharma",
+    "role": "Student Union President",
+    "branch": "Computer Science & Engg",
+    "achievements": [
+      "Spearheaded the 24/7 Library Access Initiative during exam weeks",
+      "Established the Student Innovation & Startup Fund (₹10 Lakhs pool)",
+      "Upgraded campus Wi-Fi bandwidth to 1 Gbps across all hostels"
+    ],
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"
+  },
+  {
+    "id": "hof-2",
+    "year": "2024 - 2025",
+    "name": "Riddhi Kulkarni",
+    "role": "Student Union President",
+    "branch": "Electrical Engineering",
+    "achievements": [
+      "Pioneered the Mental Health & Peer Counseling Cell at SAC",
+      "Organized the largest inter-college TechFest in campus history",
+      "Secured 100% solar lighting coverage across all sports grounds"
+    ],
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"
+  },
+  {
+    "id": "hof-3",
+    "year": "2023 - 2024",
+    "name": "Harshvardhan Rao",
+    "role": "Student Union President",
+    "branch": "Mechanical Engineering",
+    "achievements": [
+      "Renovated Central Gym & Sports Complex with professional equipment",
+      "Introduced digital voting and online grievance tracking portal",
+      "Established annual alumni mentorship dinner & internship referral network"
+    ],
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400"
+  }
+]

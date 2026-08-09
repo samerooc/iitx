@@ -1,0 +1,22 @@
+[
+  {
+    "id": "p1",
+    "question": "Should Central Library operating hours be extended to 24/7 during exam weeks?",
+    "options": [
+      { "text": "Yes, 24/7 access needed", "votes": 245 },
+      { "text": "Extend till 2:00 AM only", "votes": 68 },
+      { "text": "Current timings (11 PM) are enough", "votes": 19 }
+    ],
+    "totalVotes": 332
+  },
+  {
+    "id": "p2",
+    "question": "Which guest speaker domain would you prefer for the Annual Convocation 2026?",
+    "options": [
+      { "text": "Tech Founder & Unicorn CEO", "votes": 312 },
+      { "text": "Isro / Space Research Scientist", "votes": 198 },
+      { "text": "Renowned Author & Global Economist", "votes": 84 }
+    ],
+    "totalVotes": 594
+  }
+]

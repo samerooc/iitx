@@ -1,0 +1,42 @@
+[
+  {
+    "id": "c1",
+    "name": "Rohan Verma",
+    "position": "President",
+    "party": "Progressive Student Voice",
+    "year": "4th Year (CSE)",
+    "manifesto": "24x7 Library, upgraded high-speed Wi-Fi, and transparent union fund reports every quarter.",
+    "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400",
+    "votes": 412
+  },
+  {
+    "id": "c2",
+    "name": "Ananya Patel",
+    "position": "President",
+    "party": "United Rungta Front",
+    "year": "4th Year (ECE)",
+    "manifesto": "Placement cell reform, mental health counseling support, and industry-sponsored hackathons.",
+    "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400",
+    "votes": 390
+  },
+  {
+    "id": "c3",
+    "name": "Devansh Singh",
+    "position": "Vice President",
+    "party": "Youth Unity Movement",
+    "year": "3rd Year (ME)",
+    "manifesto": "Sports complex modern equipment, night canteen quality checks, and inter-hostel tournaments.",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+    "votes": 310
+  },
+  {
+    "id": "c4",
+    "name": "Priyanshu Das",
+    "position": "Vice President",
+    "party": "Independent Reformist",
+    "year": "3rd Year (EE)",
+    "manifesto": "Direct student-faculty redressal portal, peer mentorship network, and green campus drive.",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
+    "votes": 296
+  }
+]

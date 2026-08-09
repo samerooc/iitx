@@ -1,0 +1,61 @@
+[
+  {
+    "id": "adm-master",
+    "username": "masteradmin",
+    "password": "master123",
+    "name": "Super Admin (Secretariat)",
+    "role": "MASTER_ADMIN",
+    "permissions": [
+      "all"
+    ],
+    "createdAt": "2026-08-09"
+  },
+  {
+    "id": "adm-notice",
+    "username": "noticeofficer",
+    "password": "sub123",
+    "name": "Notice Board Officer",
+    "role": "SUB_ADMIN",
+    "permissions": [
+      "MANAGE_NOTICES"
+    ],
+    "createdAt": "2026-08-09"
+  },
+  {
+    "id": "adm-election",
+    "username": "electioncommissioner",
+    "password": "sub123",
+    "name": "Chief Election Commissioner",
+    "role": "SUB_ADMIN",
+    "permissions": [
+      "MANAGE_ELECTIONS"
+    ],
+    "createdAt": "2026-08-09"
+  },
+  {
+    "id": "adm-event",
+    "username": "eventmanager",
+    "password": "sub123",
+    "name": "Events & Resource Lead",
+    "role": "SUB_ADMIN",
+    "permissions": [
+      "MANAGE_EVENTS",
+      "MANAGE_RESOURCES"
+    ],
+    "createdAt": "2026-08-09"
+  },
+  {
+    "id": "adm-1786300707145",
+    "password": "123456",
+    "name": "YGJH",
+    "role": "SUB_ADMIN",
+    "permissions": [
+      "ministers",
+      "polls",
+      "notices",
+      "banners",
+      "messages"
+    ],
+    "createdAt": "2026-08-09"
+  }
+]
