@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       await supabase.from('banners').update(body).eq('id', id);
     }
     return NextResponse.json({ success: true });
@@ -20,7 +21,7 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       await supabase.from('banners').delete().eq('id', id);
     }
     return NextResponse.json({ success: true });
