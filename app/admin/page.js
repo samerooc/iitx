@@ -1,41 +1,43 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-
-export const dynamic = 'force-dynamic';
-
+import { formatExternalUrl } from '@/lib/utils';
 import {
-  ShieldCheck,
-  Plus,
-  Trash2,
   Lock,
-  Unlock,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
+  Crown,
+  Bell,
   Vote,
-  TrendingUp,
+  Image as ImageIcon,
   MessageSquare,
-  Sparkles,
-  BarChart2,
-  Upload,
+  Settings as SettingsIcon,
+  ShieldCheck,
   UserPlus,
-  Users,
-  Settings,
+  Trash2,
   Edit,
-  Key,
-  LogOut,
+  Plus,
+  CheckCircle2,
   Calendar,
   BookOpen,
-  Image as ImageIcon,
-  Check,
-  Crown,
-  Share2,
-  Link as LinkIcon,
+  LogOut,
+  Upload,
+  User,
+  Users,
   Eye,
-  FileSpreadsheet
+  AlertCircle,
+  Wrench,
+  Instagram,
+  Ghost,
+  Phone,
+  Mail,
+  MapPin,
+  HelpCircle,
+  Save,
+  Check,
+  X
 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default function AdminPage() {
   const {
@@ -43,889 +45,681 @@ export default function AdminPage() {
     loginAdmin,
     logoutAdmin,
     hasPermission,
-    settings,
-    updateSettings,
-    adminsList,
-    fetchAdmins,
-    addSubAdmin,
-    deleteSubAdmin,
-    uploadFile,
     ministers,
     addMinister,
+    updateMinister,
     deleteMinister,
-    banners,
-    addBanner,
-    deleteBanner,
     notices,
     addNotice,
     deleteNotice,
+    banners,
+    addBanner,
+    deleteBanner,
     polls,
     addPoll,
     deletePoll,
+    events,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    resources,
+    addResource,
+    updateResource,
+    deleteResource,
     tickets,
     updateTicketStatus,
-    deleteTicket
+    deleteTicket,
+    registeredStudents,
+    settings,
+    updateSettings,
+    adminsList,
+    addSubAdmin,
+    deleteSubAdmin,
+    uploadFile
   } = useApp();
 
-  // Login Form
-  const [emailInput, setEmailInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
   const [activeTab, setActiveTab] = useState('ministers');
-  const [uploading, setUploading] = useState(false);
 
-  // Settings State
-  const [settingsForm, setSettingsForm] = useState(settings);
+  // Modal / Form Edit states
+  const [editingMinister, setEditingMinister] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingResource, setEditingResource] = useState(null);
 
-  // Minister Form
-  const [ministerName, setMinisterName] = useState('');
-  const [ministerPortfolio, setMinisterPortfolio] = useState('President');
-  const [ministerTagline, setMinisterTagline] = useState('');
-  const [ministerDesc, setMinisterDesc] = useState('');
-  const [ministerPhoto, setMinisterPhoto] = useState('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400');
-  const [ministerInsta, setMinisterInsta] = useState('');
-
-  // Banner Form
-  const [bannerTitle, setBannerTitle] = useState('');
-  const [bannerSubtitle, setBannerSubtitle] = useState('');
-  const [bannerImage, setBannerImage] = useState('');
-  const [bannerLink, setBannerLink] = useState('');
-
-  // Notice Form
-  const [noticeTitle, setNoticeTitle] = useState('');
-  const [noticeContent, setNoticeContent] = useState('');
-  const [noticeImage, setNoticeImage] = useState('');
-  const [noticeIsImportant, setNoticeIsImportant] = useState(false);
-
-  // Poll Form
-  const [pollTitle, setPollTitle] = useState('');
-  const [cand1Name, setCand1Name] = useState('');
-  const [cand1Photo, setCand1Photo] = useState('');
-  const [cand2Name, setCand2Name] = useState('');
-  const [cand2Photo, setCand2Photo] = useState('');
-
-  // Voter Audit Modal
-  const [auditVoters, setAuditVoters] = useState([]);
-  const [auditModalOpen, setAuditModalOpen] = useState(false);
-
-  // Sub-Admin Form
-  const [subName, setSubName] = useState('');
-  const [subEmail, setSubEmail] = useState('');
-  const [subPassword, setSubPassword] = useState('');
-  const [subPerms, setSubPerms] = useState({
-    ministers: true,
-    polls: true,
-    notices: true,
-    banners: true,
-    messages: true,
-    settings: false
+  // New Item Form States
+  const [newMinister, setNewMinister] = useState({
+    name: '',
+    portfolio: 'Cabinet Minister',
+    tagline: '',
+    description: '',
+    photo_url: '',
+    display_order: 1,
+    instagram_url: '',
+    twitter_url: '',
+    linkedin_url: ''
   });
 
-  useEffect(() => {
-    setSettingsForm(settings);
-    if (currentAdmin?.role === 'MASTER_ADMIN') {
-      fetchAdmins();
-    }
-  }, [settings, currentAdmin]);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    category: 'Fest',
+    date: new Date().toISOString().split('T')[0],
+    time: '10:00 AM',
+    location: 'Main Auditorium',
+    organizer: 'Student Executive Council',
+    description: '',
+    imageUrl: ''
+  });
 
+  const [newResource, setNewResource] = useState({
+    title: '',
+    category: 'CS',
+    type: 'PDF',
+    author: 'Academic Cell',
+    linkUrl: '',
+    description: ''
+  });
+
+  const [newNotice, setNewNotice] = useState({
+    title: '',
+    content: '',
+    category: 'Notice',
+    priority: 'Medium',
+    pinned: false,
+    imageUrl: ''
+  });
+
+  const [newPollQ, setNewPollQ] = useState('');
+  const [newPollOpts, setNewPollOpts] = useState(['', '']);
+
+  // Settings local state
+  const [settingsForm, setSettingsForm] = useState(settings);
+  const [newFaqQ, setNewFaqQ] = useState('');
+  const [newFaqA, setNewFaqA] = useState('');
+
+  // Upload status
+  const [uploading, setUploading] = useState(false);
+
+  // LOGIN SUBMIT HANDLER
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
-    const res = await loginAdmin(emailInput, passwordInput);
+    const res = await loginAdmin(loginEmail, loginPass);
     if (!res.success) {
-      setLoginError(res.error);
+      setLoginError(res.error || 'Invalid credentials');
     }
   };
 
-  const handleQuickLogin = async (usr, pwd) => {
-    setEmailInput(usr);
-    setPasswordInput(pwd);
-    const res = await loginAdmin(usr, pwd);
-    if (!res.success) setLoginError(res.error);
-  };
-
-  const handleFileUpload = async (file, setUrlFn) => {
+  // UPLOAD HELPER
+  const handleFileUpload = async (file, callback) => {
+    if (!file) return;
     setUploading(true);
     try {
       const url = await uploadFile(file);
-      setUrlFn(url);
+      callback(url);
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      alert('File upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSaveSettings = async (e) => {
-    e.preventDefault();
-    await updateSettings(settingsForm);
-    alert('Supabase Site Settings updated successfully!');
-  };
-
-  const handleCreateMinister = async (e) => {
-    e.preventDefault();
-    await addMinister({
-      name: ministerName,
-      portfolio: ministerPortfolio,
-      tagline: ministerTagline,
-      description: ministerDesc,
-      photo_url: ministerPhoto,
-      instagram_url: ministerInsta,
-      display_order: ministers.length + 1
-    });
-    setMinisterName('');
-    setMinisterTagline('');
-    setMinisterDesc('');
-    alert('Cabinet Minister added to Supabase!');
-  };
-
-  const handleCreateBanner = async (e) => {
-    e.preventDefault();
-    await addBanner({
-      title: bannerTitle,
-      subtitle: bannerSubtitle,
-      image_url: bannerImage,
-      link_url: bannerLink
-    });
-    setBannerTitle('');
-    setBannerSubtitle('');
-    setBannerImage('');
-    alert('Hero Banner added to Supabase!');
-  };
-
-  const handleCreateNotice = async (e) => {
-    e.preventDefault();
-    await addNotice({
-      title: noticeTitle,
-      content: noticeContent,
-      imageUrl: noticeImage,
-      pinned: noticeIsImportant
-    });
-    setNoticeTitle('');
-    setNoticeContent('');
-    setNoticeImage('');
-    alert('Notice published to Supabase database!');
-  };
-
-  const handleCreatePoll = async (e) => {
-    e.preventDefault();
-    await addPoll(pollTitle, [
-      { text: cand1Name, photoUrl: cand1Photo },
-      { text: cand2Name, photoUrl: cand2Photo }
-    ]);
-    setPollTitle('');
-    setCand1Name('');
-    setCand2Name('');
-    alert('Poll & Candidates registered in Supabase!');
-  };
-
-  const handleFetchVoters = async (pollId) => {
-    try {
-      const res = await fetch(`/api/polls/${pollId}/voters`);
-      const data = await res.json();
-      setAuditVoters(data || []);
-      setAuditModalOpen(true);
-    } catch (e) {
-      alert('Could not fetch voter records');
-    }
-  };
-
-  const handleCreateSubAdmin = async (e) => {
-    e.preventDefault();
-    const perms = Object.keys(subPerms).filter((k) => subPerms[k]);
-    const res = await addSubAdmin({
-      name: subName,
-      email: subEmail,
-      password: subPassword,
-      role: 'sub_admin',
-      permissions: perms
-    });
-    if (res.error) alert(res.error);
-    else {
-      setSubName('');
-      setSubEmail('');
-      setSubPassword('');
-      alert('Sub-Admin account created in Supabase admin_roles!');
-    }
-  };
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      
-      {/* UNAUTHENTICATED LOGIN SCREEN */}
-      {!currentAdmin ? (
-        <div className="max-w-md mx-auto glass-card p-8 rounded-3xl border border-surface-container-high dark:border-white/10 shadow-2xl space-y-6">
+  // 1. UNAUTHENTICATED LOGIN SCREEN
+  if (!currentAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-obsidian text-white">
+        <div className="w-full max-w-md glass-card p-8 rounded-3xl border border-surface-container-high dark:border-white/15 space-y-6 shadow-2xl">
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-glow-primary">
-              <ShieldCheck className="w-8 h-8 text-neon-saffron" />
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-secondary-container to-neon-saffron text-white flex items-center justify-center font-bold text-2xl shadow-glow-saffron">
+              🏛️
             </div>
-            <h1 className="font-headline font-bold text-2xl text-primary dark:text-white">
-              Supabase Admin Governance
-            </h1>
-            <p className="text-xs text-outline dark:text-gray-400">
-              Sign in with your Supabase <code className="text-neon-saffron font-mono">admin_roles</code> email & password.
-            </p>
+            <h1 className="font-headline text-2xl font-bold text-white">Admin Control Portal</h1>
+            <p className="text-xs text-gray-400">Master & Sub-Admin RBAC Portal</p>
           </div>
 
           {loginError && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold text-center">
-              {loginError}
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{loginError}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                Admin Email / Username
-              </label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">Email / Username</label>
               <input
                 type="text"
                 required
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="masteradmin or admin@iitrungta.fun"
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
+                placeholder="master@iitrungta.fun"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:border-neon-saffron"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                Password
-              </label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">Password</label>
               <input
                 type="password"
                 required
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
+                value={loginPass}
+                onChange={(e) => setLoginPass(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:border-neon-saffron"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron hover:opacity-95"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron hover:opacity-95"
             >
-              Log In to Supabase Admin
+              Sign In to Admin Portal
             </button>
           </form>
 
-          {/* Quick Demo Login Presets */}
-          <div className="pt-4 border-t border-surface-container dark:border-white/10 space-y-2">
-            <p className="text-[11px] font-bold text-outline dark:text-gray-400 uppercase tracking-wider text-center">
-              Quick Admin Presets
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                onClick={() => handleQuickLogin('masteradmin', 'master123')}
-                className="p-2 rounded-xl bg-purple-500/10 text-purple-400 font-semibold border border-purple-500/20 hover:bg-purple-500/20"
-              >
-                👑 Master Admin
-              </button>
-              <button
-                onClick={() => handleQuickLogin('electioncommissioner', 'sub123')}
-                className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20 hover:bg-emerald-500/20"
-              >
-                🗳️ Elections Sub-Admin
-              </button>
+          <p className="text-[11px] text-gray-400 text-center">
+            Default credentials: <span className="font-mono text-neon-saffron">master@iitrungta.fun / admin123</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. AUTHENTICATED ADMIN DASHBOARD
+  const tabs = [
+    { id: 'students', label: 'Registered Students', icon: Users, perm: 'all' },
+    { id: 'ministers', label: 'Cabinet Ministers', icon: Crown, perm: 'ministers' },
+    { id: 'events', label: 'Campus Events', icon: Calendar, perm: 'events' },
+    { id: 'resources', label: 'Study Resources', icon: BookOpen, perm: 'resources' },
+    { id: 'notices', label: 'Notice Board', icon: Bell, perm: 'notices' },
+    { id: 'polls', label: 'Polls & Audits', icon: Vote, perm: 'polls' },
+    { id: 'tickets', label: 'Grievance Desk', icon: MessageSquare, perm: 'tickets' },
+    { id: 'settings', label: 'Site Settings', icon: SettingsIcon, perm: 'settings' }
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      
+      {/* ADMIN HEADER */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-surface-container-high dark:border-white/10">
+        <div>
+          <div className="flex items-center space-x-2">
+            <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/30 uppercase">
+              {currentAdmin.role}
+            </span>
+            <h1 className="font-headline text-2xl sm:text-3xl font-extrabold text-primary dark:text-white">
+              Admin Executive Panel
+            </h1>
+          </div>
+          <p className="text-xs text-outline dark:text-gray-400 mt-1">
+            Logged in as <strong className="text-neon-saffron">{currentAdmin.name}</strong> ({currentAdmin.email})
+          </p>
+        </div>
+
+        <button
+          onClick={logoutAdmin}
+          className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold hover:bg-rose-500/20 flex items-center space-x-1.5"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+
+      {/* ADMIN TABS NAVIGATION */}
+      <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          const allowed = hasPermission(tab.perm);
+
+          if (!allowed) return null;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 shrink-0 transition-all ${
+                isActive
+                  ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
+                  : 'bg-surface-container dark:bg-white/5 text-on-surface dark:text-gray-300 border border-surface-container-high dark:border-white/5 hover:border-neon-saffron'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* TAB 1: REGISTERED STUDENTS */}
+      {activeTab === 'students' && (
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
+                Registered Student Union Passes & Voters
+              </h3>
+              <p className="text-xs text-outline dark:text-gray-400">
+                View all students who issued digital passes or voted in campus polls.
+              </p>
             </div>
+            <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+              {registeredStudents.length} Students Logged
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+              <thead>
+                <tr className="border-b border-surface-container dark:border-white/10 text-outline dark:text-gray-400 font-bold uppercase">
+                  <th className="p-3">Student Name</th>
+                  <th className="p-3">Pass ID / Roll No</th>
+                  <th className="p-3">Instagram (@)</th>
+                  <th className="p-3">Snapchat (@)</th>
+                  <th className="p-3">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container dark:divide-white/5 text-on-surface dark:text-gray-300">
+                {registeredStudents.map((stud, idx) => (
+                  <tr key={idx} className="hover:bg-white/5">
+                    <td className="p-3 font-bold text-primary dark:text-white">{stud.voter_name || stud.name}</td>
+                    <td className="p-3 font-mono text-neon-saffron">{stud.id || stud.rollNo || '2024-SU-001'}</td>
+                    <td className="p-3 text-pink-400">{stud.insta_username ? `@${stud.insta_username}` : 'N/A'}</td>
+                    <td className="p-3 text-amber-400">{stud.snap_username ? `@${stud.snap_username}` : 'N/A'}</td>
+                    <td className="p-3 text-gray-400">{stud.created_at ? stud.created_at.split('T')[0] : 'Today'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: CABINET MINISTERS MANAGEMENT */}
+      {activeTab === 'ministers' && (
+        <div className="space-y-8">
+          
+          {/* ADD / EDIT MINISTER FORM */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Crown className="w-5 h-5 text-neon-saffron" />
+              <span>{editingMinister ? 'Edit Cabinet Minister' : 'Add New Cabinet Minister'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingMinister) {
+                  updateMinister(editingMinister.id, newMinister);
+                  setEditingMinister(null);
+                  alert('Minister updated successfully!');
+                } else {
+                  addMinister(newMinister);
+                  alert('Minister added to Cabinet!');
+                }
+                setNewMinister({
+                  name: '',
+                  portfolio: 'Cabinet Minister',
+                  tagline: '',
+                  description: '',
+                  photo_url: '',
+                  display_order: 1,
+                  instagram_url: '',
+                  twitter_url: '',
+                  linkedin_url: ''
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Minister Name *</label>
+                  <input type="text" required value={newMinister.name} onChange={(e) => setNewMinister({ ...newMinister, name: e.target.value })} placeholder="e.g. Rohan Verma" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Portfolio Title *</label>
+                  <input type="text" required value={newMinister.portfolio} onChange={(e) => setNewMinister({ ...newMinister, portfolio: e.target.value })} placeholder="e.g. President / General Secretary" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Tagline Quote</label>
+                  <input type="text" value={newMinister.tagline} onChange={(e) => setNewMinister({ ...newMinister, tagline: e.target.value })} placeholder="24x7 Library & Campus Digital Transparency" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Photo URL / Upload</label>
+                  <div className="flex items-center space-x-2">
+                    <input type="text" value={newMinister.photo_url} onChange={(e) => setNewMinister({ ...newMinister, photo_url: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0">
+                      <Upload className="w-4 h-4" />
+                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files[0], (url) => setNewMinister({ ...newMinister, photo_url: url }))} className="hidden" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Description / Bio</label>
+                <textarea rows={2} value={newMinister.description} onChange={(e) => setNewMinister({ ...newMinister, description: e.target.value })} placeholder="Brief summary of duties..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Instagram URL</label>
+                  <input type="text" value={newMinister.instagram_url} onChange={(e) => setNewMinister({ ...newMinister, instagram_url: e.target.value })} placeholder="instagram.com/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Twitter / X URL</label>
+                  <input type="text" value={newMinister.twitter_url} onChange={(e) => setNewMinister({ ...newMinister, twitter_url: e.target.value })} placeholder="twitter.com/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">LinkedIn URL</label>
+                  <input type="text" value={newMinister.linkedin_url} onChange={(e) => setNewMinister({ ...newMinister, linkedin_url: e.target.value })} placeholder="linkedin.com/in/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 pt-2">
+                <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                  {editingMinister ? 'Update Minister' : 'Add Minister'}
+                </button>
+                {editingMinister && (
+                  <button type="button" onClick={() => { setEditingMinister(null); setNewMinister({ name: '', portfolio: 'Cabinet Minister', tagline: '', description: '', photo_url: '', display_order: 1, instagram_url: '', twitter_url: '', linkedin_url: '' }); }} className="px-4 py-3 rounded-xl bg-surface-container dark:bg-white/10 text-xs font-bold">
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* MINISTERS LIST WITH EDIT & DELETE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {ministers.map((m) => (
+              <div key={m.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img src={m.photo_url || m.photoUrl} alt={m.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-neon-saffron" />
+                  <div>
+                    <h4 className="font-bold text-sm text-primary dark:text-white">{m.name}</h4>
+                    <p className="text-xs text-neon-saffron font-semibold">{m.portfolio}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingMinister(m);
+                      setNewMinister(m);
+                    }}
+                    className="p-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                    title="Edit Minister"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteMinister(m.id)}
+                    className="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+                    title="Delete Minister"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>
-      ) : (
-        <>
-          {/* AUTHENTICATED HEADER BANNER */}
-          <div className="p-6 rounded-3xl bg-surface-container dark:bg-obsidian-card border border-surface-container-high dark:border-white/10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-secondary-container to-neon-saffron text-white flex items-center justify-center font-bold shadow-md">
-                <Crown className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className="font-headline font-bold text-xl text-primary dark:text-white">
-                    {currentAdmin.name}
-                  </h1>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    currentAdmin.role === 'MASTER_ADMIN'
-                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  }`}>
-                    {currentAdmin.role === 'MASTER_ADMIN' ? 'Master Super Admin' : 'Sub-Admin'}
-                  </span>
-                </div>
-                <p className="text-xs text-outline dark:text-gray-400 mt-0.5">
-                  Connected to Supabase DB • Permissions: <span className="font-mono text-neon-saffron">{currentAdmin.permissions?.join(', ')}</span>
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={logoutAdmin}
-              className="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/30 text-xs font-bold flex items-center space-x-1.5 hover:bg-rose-500 hover:text-white transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-
-          {/* TAB NAVIGATION */}
-          <div className="flex items-center space-x-2 border-b border-surface-container-high dark:border-white/10 pb-3 overflow-x-auto">
-            {hasPermission('ministers') && (
-              <button
-                onClick={() => setActiveTab('ministers')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'ministers'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <Crown className="w-4 h-4" />
-                <span>Cabinet & Ministers ({ministers.length})</span>
-              </button>
-            )}
-
-            {hasPermission('notices') && (
-              <button
-                onClick={() => setActiveTab('notices')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'notices'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span>Notices Board ({notices.length})</span>
-              </button>
-            )}
-
-            {hasPermission('polls') && (
-              <button
-                onClick={() => setActiveTab('polls')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'polls'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <Vote className="w-4 h-4" />
-                <span>Polls & Voter Audit ({polls.length})</span>
-              </button>
-            )}
-
-            {hasPermission('banners') && (
-              <button
-                onClick={() => setActiveTab('banners')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'banners'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <ImageIcon className="w-4 h-4" />
-                <span>Home Hero Banners ({banners.length})</span>
-              </button>
-            )}
-
-            {hasPermission('messages') && (
-              <button
-                onClick={() => setActiveTab('messages')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'messages'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>Contact Messages ({tickets.length})</span>
-              </button>
-            )}
-
-            {hasPermission('settings') && (
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'settings'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                <span>Supabase Site Settings</span>
-              </button>
-            )}
-
-            {currentAdmin.role === 'MASTER_ADMIN' && (
-              <button
-                onClick={() => setActiveTab('admins')}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center space-x-1.5 whitespace-nowrap ${
-                  activeTab === 'admins'
-                    ? 'bg-primary dark:bg-neon-saffron text-white dark:text-obsidian shadow-md'
-                    : 'bg-surface-container dark:bg-obsidian-card text-on-surface-variant dark:text-gray-300'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span>Sub-Admin RBAC Roles</span>
-              </button>
-            )}
-          </div>
-
-          {/* TAB 1: CABINET & MINISTERS */}
-          {activeTab === 'ministers' && hasPermission('ministers') && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
-              <div className="lg:col-span-5 glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white flex items-center space-x-2">
-                  <Plus className="w-5 h-5 text-neon-saffron" />
-                  <span>Add Cabinet Minister / Leader</span>
-                </h3>
-
-                <form onSubmit={handleCreateMinister} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                      Minister Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Vikramaditya Sharma"
-                      value={ministerName}
-                      onChange={(e) => setMinisterName(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                        Portfolio / Title
-                      </label>
-                      <select
-                        value={ministerPortfolio}
-                        onChange={(e) => setMinisterPortfolio(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                      >
-                        <option value="President">President</option>
-                        <option value="Vice President">Vice President</option>
-                        <option value="General Secretary">General Secretary</option>
-                        <option value="Sports Minister">Sports Minister</option>
-                        <option value="Cultural Minister">Cultural Minister</option>
-                        <option value="Academic Secretary">Academic Secretary</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                        Photo (Supabase Storage)
-                      </label>
-                      <label className="px-3 py-2.5 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold text-primary dark:text-white cursor-pointer hover:opacity-90 flex items-center space-x-1.5">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span className="truncate">{uploading ? 'Uploading...' : 'Upload'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], setMinisterPhoto)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                      Tagline Agenda
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 24x7 Library & Campus Digital Transparency"
-                      value={ministerTagline}
-                      onChange={(e) => setMinisterTagline(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                      Description / Bio
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={ministerDesc}
-                      onChange={(e) => setMinisterDesc(e.target.value)}
-                      placeholder="Brief overview of portfolio responsibilities..."
-                      className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm"
-                  >
-                    Save Minister to Supabase DB
-                  </button>
-                </form>
-              </div>
-
-              <div className="lg:col-span-7 space-y-4">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">
-                  Active Ministers & Executive Council ({ministers.length})
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {ministers.map((m) => (
-                    <div
-                      key={m.id}
-                      className="glass-card p-5 rounded-2xl border border-surface-container-high dark:border-white/10 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <img src={m.photo_url || m.photoUrl} alt={m.name} className="w-14 h-14 rounded-xl object-cover ring-2 ring-neon-saffron" />
-                        <div>
-                          <h4 className="font-bold text-sm text-primary dark:text-white">{m.name}</h4>
-                          <p className="text-xs text-secondary dark:text-neon-saffron font-semibold">{m.portfolio}</p>
-                          <p className="text-[11px] text-outline dark:text-gray-400 line-clamp-1">{m.tagline}</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => deleteMinister(m.id)}
-                        className="p-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 2: POLLS & VOTER TRACKING */}
-          {activeTab === 'polls' && hasPermission('polls') && (
-            <div className="space-y-8">
-              
-              <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4 max-w-3xl">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white flex items-center space-x-2">
-                  <Plus className="w-5 h-5 text-neon-saffron" />
-                  <span>Create Live Poll & Candidate Options</span>
-                </h3>
-
-                <form onSubmit={handleCreatePoll} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                      Poll Title / Question
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Student Union Executive Elections 2026 - President"
-                      value={pollTitle}
-                      onChange={(e) => setPollTitle(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-xs font-semibold text-outline dark:text-gray-300">
-                        Candidate 1 Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Rohan Verma"
-                        value={cand1Name}
-                        onChange={(e) => setCand1Name(e.target.value)}
-                        className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                      />
-                      <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-semibold cursor-pointer flex items-center space-x-1.5">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{cand1Photo ? 'Photo Uploaded ✓' : 'Upload Candidate 1 Photo'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], setCand1Photo)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-semibold text-outline dark:text-gray-300">
-                        Candidate 2 Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ananya Patel"
-                        value={cand2Name}
-                        onChange={(e) => setCand2Name(e.target.value)}
-                        className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
-                      />
-                      <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-semibold cursor-pointer flex items-center space-x-1.5">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{cand2Photo ? 'Photo Uploaded ✓' : 'Upload Candidate 2 Photo'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], setCand2Photo)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm"
-                  >
-                    Launch Live Poll in Supabase
-                  </button>
-                </form>
-              </div>
-
-              {/* Active Polls & Audit Reports */}
-              <div className="space-y-4">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">
-                  Active Polls & Voter Tracking ({polls.length})
-                </h3>
-
-                <div className="space-y-4">
-                  {polls.map((p) => (
-                    <div
-                      key={p.id}
-                      className="glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-headline font-bold text-lg text-primary dark:text-white">{p.question}</h4>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleFetchVoters(p.id)}
-                            className="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/20 flex items-center space-x-1"
-                          >
-                            <FileSpreadsheet className="w-3.5 h-3.5" />
-                            <span>Voter Audit Report</span>
-                          </button>
-                          <button onClick={() => deletePoll(p.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-500">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {p.options?.map((opt, idx) => (
-                          <div key={idx} className="p-3.5 rounded-2xl bg-surface-container dark:bg-white/5 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              {opt.photoUrl && <img src={opt.photoUrl} alt={opt.text} className="w-10 h-10 rounded-full object-cover" />}
-                              <span className="text-sm font-semibold text-primary dark:text-white">{opt.text}</span>
-                            </div>
-                            <span className="font-headline text-lg font-bold text-neon-saffron">{opt.votes} Votes</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 3: NOTICES BOARD */}
-          {activeTab === 'notices' && hasPermission('notices') && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
-              <div className="lg:col-span-5 glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">Publish Notice</h3>
-
-                <form onSubmit={handleCreateNotice} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Title</label>
-                    <input type="text" required value={noticeTitle} onChange={(e) => setNoticeTitle(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Image Attachment</label>
-                    <label className="px-4 py-2.5 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold text-primary dark:text-white cursor-pointer hover:opacity-90 flex items-center space-x-1.5">
-                      <Upload className="w-4 h-4" />
-                      <span>{noticeImage ? 'Image Uploaded ✓' : 'Upload Image'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], setNoticeImage)} className="hidden" />
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Content</label>
-                    <textarea rows={4} required value={noticeContent} onChange={(e) => setNoticeContent(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-
-                  <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                    <input type="checkbox" checked={noticeIsImportant} onChange={(e) => setNoticeIsImportant(e.target.checked)} className="rounded text-neon-saffron" />
-                    <span className="text-on-surface dark:text-gray-200">Mark as Urgent / Important</span>
-                  </label>
-
-                  <button type="submit" className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm">Publish Notice to Supabase</button>
-                </form>
-              </div>
-
-              <div className="lg:col-span-7 space-y-3">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">Active Notices ({notices.length})</h3>
-                {notices.map((n) => (
-                  <div key={n.id} className="glass-card p-4 rounded-2xl border border-surface-container-high dark:border-white/10 flex items-center justify-between gap-4">
-                    <div>
-                      {n.pinned && <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 text-[10px] font-bold">URGENT</span>}
-                      <h4 className="font-bold text-sm text-primary dark:text-white mt-1">{n.title}</h4>
-                    </div>
-                    <button onClick={() => deleteNotice(n.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 4: SUPABASE SITE SETTINGS */}
-          {activeTab === 'settings' && hasPermission('settings') && (
-            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6 max-w-3xl">
-              <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-                <Settings className="w-5 h-5 text-neon-saffron" />
-                <span>Supabase site_settings Configuration</span>
-              </h3>
-
-              <form onSubmit={handleSaveSettings} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Logo Icon Emoji</label>
-                    <input type="text" value={settingsForm.logoText} onChange={(e) => setSettingsForm({ ...settingsForm, logoText: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Upload Site Logo Image</label>
-                    <label className="px-4 py-2.5 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold text-primary dark:text-white cursor-pointer flex items-center space-x-1.5">
-                      <Upload className="w-4 h-4" />
-                      <span>{settingsForm.logoUrl ? 'Logo Uploaded ✓' : 'Upload Logo'}</span>
-                      <input type="file" accept="image/*" onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], (url) => setSettingsForm({ ...settingsForm, logoUrl: url }))} className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">WhatsApp Group Link</label>
-                    <input type="text" value={settingsForm.whatsappGcLink} onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGcLink: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Telegram Channel Link</label>
-                    <input type="text" value={settingsForm.telegramLink} onChange={(e) => setSettingsForm({ ...settingsForm, telegramLink: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Contact Email</label>
-                    <input type="email" value={settingsForm.contactEmail} onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Contact Phone</label>
-                    <input type="text" value={settingsForm.contactPhone} onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                </div>
-
-                <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-                  Save Supabase Settings
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* TAB 5: SUB-ADMIN RBAC MANAGEMENT */}
-          {activeTab === 'admins' && currentAdmin.role === 'MASTER_ADMIN' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-5 glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white flex items-center space-x-2">
-                  <UserPlus className="w-5 h-5 text-neon-saffron" />
-                  <span>Create Sub-Admin Role</span>
-                </h3>
-
-                <form onSubmit={handleCreateSubAdmin} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Full Name</label>
-                    <input type="text" required value={subName} onChange={(e) => setSubName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Email / Username</label>
-                    <input type="text" required value={subEmail} onChange={(e) => setSubEmail(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Password</label>
-                    <input type="text" required value={subPassword} onChange={(e) => setSubPassword(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-surface-container dark:border-white/5">
-                    <label className="block text-xs font-bold text-outline dark:text-gray-300 uppercase">Permissions JSONB:</label>
-                    {Object.keys(subPerms).map((k) => (
-                      <label key={k} className="flex items-center space-x-2 text-xs text-on-surface dark:text-gray-200 cursor-pointer">
-                        <input type="checkbox" checked={subPerms[k]} onChange={(e) => setSubPerms({ ...subPerms, [k]: e.target.checked })} className="rounded text-neon-saffron" />
-                        <span>{k}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  <button type="submit" className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm">Create Sub-Admin in Supabase</button>
-                </form>
-              </div>
-
-              <div className="lg:col-span-7 space-y-3">
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">Active Admin Roles ({adminsList.length})</h3>
-                {adminsList.map((adm) => (
-                  <div key={adm.id} className="glass-card p-4 rounded-2xl border border-surface-container-high dark:border-white/10 flex items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-sm text-primary dark:text-white">{adm.name} ({adm.email})</h4>
-                      <p className="text-xs text-neon-saffron font-mono">{adm.role} • Permissions: {JSON.stringify(adm.permissions)}</p>
-                    </div>
-                    {adm.role !== 'master' && (
-                      <button onClick={() => deleteSubAdmin(adm.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </>
       )}
 
-      {/* VOTER AUDIT MODAL */}
-      {auditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian/85 backdrop-blur-md">
-          <div className="bg-surface dark:bg-obsidian-card border border-surface-container-high dark:border-white/15 w-full max-w-2xl rounded-3xl p-6 space-y-6 shadow-2xl relative">
-            <div className="flex items-center justify-between pb-3 border-b border-surface-container dark:border-white/10">
-              <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-                <FileSpreadsheet className="w-5 h-5 text-neon-saffron" />
-                <span>Supabase voter_records Audit List ({auditVoters.length})</span>
-              </h3>
-              <button onClick={() => setAuditModalOpen(false)} className="px-3 py-1 bg-surface-container dark:bg-white/10 text-xs font-bold rounded-lg">Close</button>
+      {/* TAB 3: CAMPUS EVENTS MANAGEMENT */}
+      {activeTab === 'events' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-neon-saffron" />
+              <span>{editingEvent ? 'Edit Campus Event' : 'Add New Campus Event'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingEvent) {
+                  updateEvent(editingEvent.id, newEvent);
+                  setEditingEvent(null);
+                  alert('Event updated!');
+                } else {
+                  addEvent(newEvent);
+                  alert('Event published!');
+                }
+                setNewEvent({ title: '', category: 'Fest', date: new Date().toISOString().split('T')[0], time: '10:00 AM', location: 'Main Auditorium', organizer: 'Student Executive Council', description: '', imageUrl: '' });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Event Title *</label>
+                  <input type="text" required value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} placeholder="e.g. Annual Cultural Fest 2026" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
+                  <input type="text" value={newEvent.category} onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })} placeholder="Fest / Hackathon / Sports" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Date</label>
+                  <input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Time</label>
+                  <input type="text" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} placeholder="10:00 AM" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Location</label>
+                  <input type="text" value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Auditorium" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Description</label>
+                <textarea rows={2} value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingEvent ? 'Update Event' : 'Publish Event'}
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {events.map((ev) => (
+              <div key={ev.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{ev.title}</h4>
+                  <p className="text-xs text-gray-400">{ev.date} • {ev.location}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => { setEditingEvent(ev); setNewEvent(ev); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteEvent(ev.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: STUDY RESOURCES MANAGEMENT */}
+      {activeTab === 'resources' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <BookOpen className="w-5 h-5 text-neon-saffron" />
+              <span>{editingResource ? 'Edit Resource' : 'Upload Study Resource'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingResource) {
+                  updateResource(editingResource.id, newResource);
+                  setEditingResource(null);
+                  alert('Resource updated!');
+                } else {
+                  addResource(newResource);
+                  alert('Resource published!');
+                }
+                setNewResource({ title: '', category: 'CS', type: 'PDF', author: 'Academic Cell', linkUrl: '', description: '' });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Resource Title *</label>
+                  <input type="text" required value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })} placeholder="e.g. Data Structures Notes PDF" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Download / Drive Link</label>
+                  <input type="text" value={newResource.linkUrl} onChange={(e) => setNewResource({ ...newResource, linkUrl: e.target.value })} placeholder="https://drive.google.com/..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingResource ? 'Update Resource' : 'Add Resource'}
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {resources.map((res) => (
+              <div key={res.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{res.title}</h4>
+                  <p className="text-xs text-gray-400">{res.category} • {res.type}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => { setEditingResource(res); setNewResource(res); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteResource(res.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: GRIEVANCE DESK / MESSAGES */}
+      {activeTab === 'tickets' && (
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+          <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
+            Student Grievance Messages & Inquiries
+          </h3>
+
+          <div className="space-y-4">
+            {tickets.map((tick) => (
+              <div key={tick.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-primary dark:text-white">{tick.name} ({tick.email})</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${tick.isRead || tick.status === 'Resolved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                    {tick.isRead || tick.status === 'Resolved' ? 'Resolved' : 'Unread / Open'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300">{tick.message}</p>
+                <div className="flex items-center space-x-2 pt-2">
+                  <button onClick={() => updateTicketStatus(tick.id, 'Resolved')} className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold">Mark Resolved</button>
+                  <button onClick={() => deleteTicket(tick.id)} className="px-3 py-1 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-bold">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: SITE SETTINGS & MAINTENANCE MODE */}
+      {activeTab === 'settings' && (
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+          <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+            <SettingsIcon className="w-5 h-5 text-neon-saffron" />
+            <span>Site Configuration & Maintenance Controls</span>
+          </h3>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateSettings(settingsForm);
+              alert('Site settings & maintenance configuration updated successfully!');
+            }}
+            className="space-y-6"
+          >
+            {/* MAINTENANCE MODE TOGGLE */}
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Wrench className="w-5 h-5 text-amber-400" />
+                  <span className="font-bold text-sm text-white">System Maintenance Mode</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.maintenanceMode}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMode: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-saffron"></div>
+                </label>
+              </div>
+              <input
+                type="text"
+                value={settingsForm.maintenanceMessage || ''}
+                onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMessage: e.target.value })}
+                placeholder="Custom Maintenance Banner Message..."
+                className="w-full px-4 py-2 rounded-xl bg-obsidian/60 border text-xs text-white"
+              />
             </div>
 
-            <div className="max-h-80 overflow-y-auto space-y-2">
-              {auditVoters.length === 0 ? (
-                <p className="text-xs text-center text-outline dark:text-gray-400 py-6">No voter records logged for this poll yet.</p>
-              ) : (
-                auditVoters.map((rec) => (
-                  <div key={rec.id} className="p-3 rounded-xl bg-surface-container dark:bg-white/5 text-xs flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-primary dark:text-white">{rec.voter_name}</p>
-                      <p className="text-[10px] text-outline dark:text-gray-400">Insta: @{rec.insta_username || 'N/A'} • Snap: @{rec.snap_username || 'N/A'}</p>
-                    </div>
-                    <span className="font-bold text-neon-saffron">{rec.poll_candidates?.name || 'Voted'}</span>
-                  </div>
-                ))
-              )}
+            {/* CONTACT DETAILS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Phone</label>
+                <input type="text" value={settingsForm.contactPhone} onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Email</label>
+                <input type="text" value={settingsForm.contactEmail} onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Campus Address</label>
+                <input type="text" value={settingsForm.campusAddress} onChange={(e) => setSettingsForm({ ...settingsForm, campusAddress: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
             </div>
-          </div>
+
+            {/* SOCIAL MEDIA LINKS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">WhatsApp GC Link</label>
+                <input type="text" value={settingsForm.whatsappGcLink} onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGcLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Telegram Link</label>
+                <input type="text" value={settingsForm.telegramLink} onChange={(e) => setSettingsForm({ ...settingsForm, telegramLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Instagram Link</label>
+                <input type="text" value={settingsForm.instagramLink} onChange={(e) => setSettingsForm({ ...settingsForm, instagramLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Discord Link</label>
+                <input type="text" value={settingsForm.discordLink} onChange={(e) => setSettingsForm({ ...settingsForm, discordLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+              </div>
+            </div>
+
+            <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+              Save All Site Settings
+            </button>
+          </form>
         </div>
       )}
 

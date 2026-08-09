@@ -1,27 +1,29 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 import { readData, writeData } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (!error && Array.isArray(data)) {
         return NextResponse.json(
           data.map((m) => ({
             id: m.id,
-            title: `Message from ${m.name}`,
-            description: m.message,
-            category: 'Grievance',
-            urgency: 'Medium',
-            status: m.is_read ? 'Resolved' : 'Pending Review',
-            isAnonymous: false,
+            name: m.name,
+            email: m.email,
+            subject: 'Grievance / Inquiry',
+            message: m.message,
+            category: 'General',
+            status: m.is_read ? 'Resolved' : 'Open',
+            isRead: m.is_read,
             date: m.created_at ? m.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
           }))
         );
@@ -37,14 +39,14 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const { data, error } = await supabase
         .from('contact_messages')
         .insert([
           {
-            name: body.isAnonymous ? 'Anonymous Student' : body.name || 'IIT Rungta Student',
-            email: body.email || 'student@iitrungta.fun',
-            message: `${body.title ? `[${body.title}] ` : ''}${body.description}`,
+            name: body.name,
+            email: body.email,
+            message: body.message,
             is_read: false
           }
         ])
@@ -56,26 +58,29 @@ export async function POST(request) {
           success: true,
           ticket: {
             id: data.id,
-            title: body.title || 'Student Message',
-            description: data.message,
-            category: body.category || 'Grievance',
-            status: 'Pending Review',
+            name: data.name,
+            email: data.email,
+            subject: body.subject || 'Grievance / Inquiry',
+            message: data.message,
+            category: body.category || 'General',
+            status: 'Open',
+            isRead: false,
             date: new Date().toISOString().split('T')[0]
           }
         });
       }
     }
 
-    // Local fallback
     const tickets = readData('tickets') || [];
     const newTicket = {
-      id: 't-' + (100 + tickets.length + 1),
-      title: body.title,
-      category: body.category || 'General',
-      urgency: body.urgency || 'Medium',
-      description: body.description || '',
-      isAnonymous: body.isAnonymous || false,
-      status: 'Pending Review',
+      id: 't' + Date.now(),
+      name: body.name,
+      email: body.email,
+      subject: body.subject || 'General Inquiry',
+      category: body.category || 'Support',
+      message: body.message,
+      status: 'Open',
+      isRead: false,
       date: new Date().toISOString().split('T')[0]
     };
     tickets.unshift(newTicket);

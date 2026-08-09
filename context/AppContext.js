@@ -22,7 +22,14 @@ export function AppProvider({ children }) {
     telegramLink: 'https://t.me/',
     instagramLink: 'https://instagram.com/',
     discordLink: 'https://discord.gg/',
-    electionStatus: 'OPEN'
+    maintenanceMode: false,
+    maintenanceMessage: 'The IIT Rungta Union Portal is currently undergoing scheduled database maintenance. We will be back online shortly!',
+    disclaimerText: '⚠️ DISCLAIMER: This is an educational mock website built strictly for skill demonstration and portfolio purposes. It has no real affiliation with any educational institution.',
+    helpFaqs: [
+      { q: 'How do I issue my Digital Union Pass?', a: 'Click "Create Student Pass" in the top bar or visit /profile to register your details & photo.' },
+      { q: 'Is voting anonymous and secure?', a: 'Yes! Every vote is cryptographically hashed and logged with voter verification.' },
+      { q: 'How do I raise a grievance with the Union?', a: 'Visit the Support & Grievance Desk at /support to send a direct message to the Secretariat.' }
+    ]
   });
 
   const [ministers, setMinisters] = useState([]);
@@ -34,12 +41,14 @@ export function AppProvider({ children }) {
   const [resources, setResources] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [adminsList, setAdminsList] = useState([]);
+  const [registeredStudents, setRegisteredStudents] = useState([]);
 
   // Auth States
   const [currentAdmin, setCurrentAdmin] = useState(null);
   
-  // Student Profile State (Starts as null so student creates it self-service!)
+  // Student Profile State
   const [userProfile, setUserProfile] = useState(null);
+  const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
 
   // Voting State
   const [userVoteState, setUserVoteState] = useState({});
@@ -50,7 +59,7 @@ export function AppProvider({ children }) {
   const refreshAllData = useCallback(async () => {
     if (typeof window === 'undefined') return;
     try {
-      const [resSet, resMin, resBan, resNot, resCand, resPoll, resEv, resRes, resTick] = await Promise.all([
+      const [resSet, resMin, resBan, resNot, resCand, resPoll, resEv, resRes, resTick, resStud] = await Promise.all([
         fetch('/api/settings').then((r) => r.json()).catch(() => null),
         fetch('/api/ministers').then((r) => r.json()).catch(() => []),
         fetch('/api/banners').then((r) => r.json()).catch(() => []),
@@ -59,7 +68,8 @@ export function AppProvider({ children }) {
         fetch('/api/polls').then((r) => r.json()).catch(() => []),
         fetch('/api/events').then((r) => r.json()).catch(() => []),
         fetch('/api/resources').then((r) => r.json()).catch(() => []),
-        fetch('/api/tickets').then((r) => r.json()).catch(() => [])
+        fetch('/api/tickets').then((r) => r.json()).catch(() => []),
+        fetch('/api/students').then((r) => r.json()).catch(() => [])
       ]);
 
       if (resSet && !resSet.error) setSettings((prev) => ({ ...prev, ...resSet }));
@@ -71,6 +81,7 @@ export function AppProvider({ children }) {
       if (Array.isArray(resEv) && resEv.length > 0) setEvents(resEv);
       if (Array.isArray(resRes) && resRes.length > 0) setResources(resRes);
       if (Array.isArray(resTick) && resTick.length > 0) setTickets(resTick);
+      if (Array.isArray(resStud) && resStud.length > 0) setRegisteredStudents(resStud);
     } catch (e) {
       console.error('Error fetching Supabase data:', e);
     }
@@ -132,7 +143,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Student Self-Registration & ID Card Generation
+  // Student Self-Registration & ID Card Generation with Instagram & Snapchat
   const createStudentProfile = (formData) => {
     const membershipId = `IITR-SU-${Math.floor(10000 + Math.random() * 90000)}`;
     const newPass = {
@@ -142,6 +153,8 @@ export function AppProvider({ children }) {
       year: formData.year || '1st Year',
       email: formData.email || '',
       phone: formData.phone || '',
+      instaUsername: formData.instaUsername || '',
+      snapUsername: formData.snapUsername || '',
       avatar: formData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300',
       membershipId,
       status: 'Verified Member',
@@ -209,7 +222,7 @@ export function AppProvider({ children }) {
     throw new Error(data.error || 'Upload failed');
   };
 
-  // Optimistic Settings API
+  // Settings API
   const updateSettings = async (newSettings) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     const res = await fetch('/api/settings', {
@@ -223,7 +236,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Optimistic Ministers API
+  // Ministers API
   const addMinister = async (dataObj) => {
     const tempId = 'm-' + Date.now();
     const tempMin = { id: tempId, ...dataObj };
@@ -254,7 +267,7 @@ export function AppProvider({ children }) {
     await fetch(`/api/ministers/${id}`, { method: 'DELETE' });
   };
 
-  // Optimistic Banners API
+  // Banners API
   const addBanner = async (dataObj) => {
     const tempId = 'b-' + Date.now();
     const tempB = { id: tempId, ...dataObj };
@@ -293,7 +306,7 @@ export function AppProvider({ children }) {
     await fetch(`/api/admins?id=${id}`, { method: 'DELETE' });
   };
 
-  // Optimistic Notice API
+  // Notice API
   const addNotice = async (noticeData) => {
     const tempId = 'n-' + Date.now();
     const tempN = {
@@ -359,7 +372,7 @@ export function AppProvider({ children }) {
     throw new Error(data.error || 'Failed to submit ballot');
   };
 
-  // Polls & Optimistic Voter Tracking API
+  // Polls API
   const addPoll = async (question, optionsArray) => {
     const res = await fetch('/api/polls', {
       method: 'POST',
@@ -396,6 +409,9 @@ export function AppProvider({ children }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ candidateId, voterName, instaUsername, snapUsername })
     });
+
+    // Refresh registered students log
+    fetch('/api/students').then((r) => r.json()).then((s) => setRegisteredStudents(s)).catch(() => {});
   };
 
   const deletePoll = async (id) => {
@@ -414,6 +430,15 @@ export function AppProvider({ children }) {
     if (data.success && data.event) {
       setEvents((prev) => [data.event, ...prev]);
     }
+  };
+
+  const updateEvent = async (id, eventData) => {
+    setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, ...eventData } : e)));
+    await fetch(`/api/events/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    });
   };
 
   const deleteEvent = async (id) => {
@@ -445,6 +470,15 @@ export function AppProvider({ children }) {
     }
   };
 
+  const updateResource = async (id, resourceData) => {
+    setResources((prev) => prev.map((r) => (r.id === id ? { ...r, ...resourceData } : r)));
+    await fetch(`/api/resources/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resourceData)
+    });
+  };
+
   const deleteResource = async (id) => {
     setResources((prev) => prev.filter((r) => r.id !== id));
     await fetch(`/api/resources/${id}`, { method: 'DELETE' });
@@ -464,11 +498,11 @@ export function AppProvider({ children }) {
   };
 
   const updateTicketStatus = async (id, status) => {
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status, isRead: true } : t)));
     await fetch(`/api/tickets/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status, isRead: true })
     });
   };
 
@@ -512,19 +546,24 @@ export function AppProvider({ children }) {
         deletePoll,
         events,
         addEvent,
+        updateEvent,
         deleteEvent,
         toggleRSVP,
         resources,
         addResource,
+        updateResource,
         deleteResource,
         tickets,
         addTicket,
         updateTicketStatus,
         deleteTicket,
+        registeredStudents,
         userProfile,
         createStudentProfile,
         setUserProfile: updateStudentProfile,
         hasCreatedCard: Boolean(userProfile),
+        disclaimerDismissed,
+        setDisclaimerDismissed,
         userVoteState,
         castElectionVote,
         hasVoted,

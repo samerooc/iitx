@@ -27,13 +27,27 @@ import {
   Linkedin,
   X,
   PlusCircle,
-  QrCode
+  QrCode,
+  Info
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  const { notices, polls, castPollVote, settings, ministers, banners, userProfile, hasCreatedCard, createStudentProfile } = useApp();
+  const {
+    notices,
+    polls,
+    castPollVote,
+    settings,
+    ministers,
+    banners,
+    userProfile,
+    hasCreatedCard,
+    createStudentProfile,
+    disclaimerDismissed,
+    setDisclaimerDismissed
+  } = useApp();
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeNoticeModal, setActiveNoticeModal] = useState(null);
@@ -46,8 +60,8 @@ export default function Home() {
   // Voter Details Form
   const [voterName, setVoterName] = useState(userProfile?.name || '');
   const [voterRoll, setVoterRoll] = useState(userProfile?.rollNo || '');
-  const [instaUser, setInstaUser] = useState('');
-  const [snapUser, setSnapUser] = useState('');
+  const [instaUser, setInstaUser] = useState(userProfile?.instaUsername || '');
+  const [snapUser, setSnapUser] = useState(userProfile?.snapUsername || '');
 
   const categories = ['All', 'Elections', 'Academic', 'Tech & Events', 'Administrative'];
 
@@ -65,6 +79,8 @@ export default function Home() {
     if (userProfile) {
       setVoterName(userProfile.name);
       setVoterRoll(userProfile.rollNo);
+      setInstaUser(userProfile.instaUsername || '');
+      setSnapUser(userProfile.snapUsername || '');
     }
     setPollModalOpen(true);
   };
@@ -79,7 +95,9 @@ export default function Home() {
         name: voterName,
         rollNo: voterRoll || '2024-SU-001',
         department: 'Computer Science & Engineering',
-        year: '1st Year'
+        year: '1st Year',
+        instaUsername: instaUser,
+        snapUsername: snapUser
       });
     }
 
@@ -91,6 +109,28 @@ export default function Home() {
   return (
     <div className="space-y-12 pb-16">
       
+      {/* MOCK DISCLAIMER FLOATING BANNER WITH CUT (X) BUTTON */}
+      {!disclaimerDismissed && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-600 dark:text-amber-400 px-4 py-3 text-xs sm:text-sm font-medium flex items-center justify-between">
+          <div className="flex items-center space-x-2 max-w-4xl mx-auto">
+            <Info className="w-4 h-4 shrink-0" />
+            <span>
+              {settings.disclaimerText || '⚠️ DISCLAIMER: This is an educational mock website built strictly for skill demonstration and portfolio purposes. It has no real affiliation with any educational institution.'}
+            </span>
+            <Link href="/terms" className="underline font-bold hover:text-amber-500 shrink-0 ml-2">
+              Read Terms
+            </Link>
+          </div>
+          <button
+            onClick={() => setDisclaimerDismissed(true)}
+            className="p-1 rounded-lg hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+            title="Dismiss Disclaimer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden pt-12 pb-16 bg-gradient-to-b from-primary-container/20 via-surface to-surface dark:from-obsidian-card dark:via-obsidian dark:to-obsidian border-b border-surface-container-high dark:border-white/10">
         
@@ -109,7 +149,7 @@ export default function Home() {
               Live Alert
             </span>
             <span className="text-outline dark:text-gray-300 truncate max-w-xs sm:max-w-md">
-              {settings.tickerAlert || 'Student Union Executive Elections 2026 Schedule & Manifesto Submissions Active'}
+              {settings.tickerAlert || 'Student Union Executive Elections 2026 Schedule Active'}
             </span>
             <Link href="/elections" className="text-secondary dark:text-neon-saffron hover:underline font-semibold flex items-center">
               <span>View</span>

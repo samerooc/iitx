@@ -3,24 +3,25 @@
 import React from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
+import { formatExternalUrl } from '@/lib/utils';
 import {
   Phone,
   Mail,
   MapPin,
-  MessageCircle,
+  MessageSquare,
   Send,
   Instagram,
-  Disc as DiscordIcon,
-  Shield,
+  ShieldCheck,
   Heart,
-  ExternalLink
+  Globe,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function Footer() {
   const { settings } = useApp();
 
   return (
-    <footer className="w-full bg-surface-container-high/60 dark:bg-obsidian-card border-t border-surface-container-high dark:border-white/10 pt-12 pb-8">
+    <footer className="w-full bg-surface-container-low dark:bg-obsidian-card border-t border-surface-container-high dark:border-white/10 pt-12 pb-8 text-on-surface dark:text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -29,43 +30,100 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               {settings.logoUrl ? (
-                <img src={settings.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain" />
+                <img src={settings.logoUrl} alt="Logo" className="w-10 h-10 rounded-xl object-contain ring-2 ring-neon-saffron/40" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-primary text-white font-extrabold text-lg flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-secondary-container to-neon-saffron text-white flex items-center justify-center font-black text-lg shadow-glow-saffron">
                   {settings.logoText || '🏛️'}
                 </div>
               )}
               <div>
-                <h3 className="font-headline font-bold text-lg text-primary dark:text-white">
-                  {settings.siteTitle || 'IIT RUNGTA'} UNION
+                <h3 className="font-headline font-black text-lg text-primary dark:text-white">
+                  {settings.siteTitle || 'IIT RUNGTA'}
                 </h3>
-                <p className="text-[10px] text-outline dark:text-gray-400">Official Student Governance</p>
+                <p className="text-xs text-outline dark:text-gray-400 font-medium">
+                  {settings.subTitle || 'Student Union Portal 2026'}
+                </p>
               </div>
             </div>
-
-            <p className="text-xs text-outline dark:text-gray-300 leading-relaxed">
-              {settings.heroSubtext || 'IIT Rungta Union 2026 - Empowering student voices, academic excellence, and campus unity.'}
+            <p className="text-xs text-outline dark:text-gray-400 leading-relaxed">
+              Empowering students through transparent governance, digital voting, and 24x7 grievance desk.
             </p>
+          </div>
 
-            {/* DYNAMIC SOCIAL LINKS FROM SUPABASE */}
-            <div className="flex items-center space-x-2 pt-2">
+          {/* QUICK LINKS */}
+          <div className="space-y-3">
+            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
+              Quick Navigation
+            </h4>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/" className="hover:text-neon-saffron transition-colors">Notice Board & News</Link>
+              </li>
+              <li>
+                <Link href="/elections" className="hover:text-neon-saffron transition-colors">Executive Elections 2026</Link>
+              </li>
+              <li>
+                <Link href="/hall-of-fame" className="hover:text-neon-saffron transition-colors">Cabinet Ministers</Link>
+              </li>
+              <li>
+                <Link href="/profile" className="hover:text-neon-saffron transition-colors">Digital Union Pass</Link>
+              </li>
+              <li>
+                <Link href="/support" className="hover:text-neon-saffron transition-colors">Help & Grievance Desk</Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-neon-saffron font-bold hover:underline flex items-center space-x-1">
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Terms & Mock Disclaimer</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* CONTACT INFO */}
+          <div className="space-y-3">
+            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
+              Secretariat Contact
+            </h4>
+            <ul className="space-y-2 text-xs">
+              <li className="flex items-center space-x-2">
+                <Phone className="w-4 h-4 text-neon-saffron shrink-0" />
+                <span>{settings.contactPhone || '+91 98765 43210'}</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-neon-saffron shrink-0" />
+                <span>{settings.contactEmail || 'union@iitrungta.fun'}</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <MapPin className="w-4 h-4 text-neon-saffron shrink-0 mt-0.5" />
+                <span>{settings.campusAddress || 'IIT Rungta Campus, Bhilai, Chhattisgarh'}</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* SOCIAL MEDIA LINKS WITH FIXED REDIRECTION */}
+          <div className="space-y-3">
+            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
+              Connect With Us
+            </h4>
+            <div className="flex flex-wrap gap-2 pt-1">
               {settings.whatsappGcLink && (
                 <a
-                  href={settings.whatsappGcLink}
+                  href={formatExternalUrl(settings.whatsappGcLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-surface-container dark:bg-white/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                   title="WhatsApp Group"
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageSquare className="w-4 h-4" />
                 </a>
               )}
               {settings.telegramLink && (
                 <a
-                  href={settings.telegramLink}
+                  href={formatExternalUrl(settings.telegramLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-sky-500/10 text-sky-500 hover:bg-sky-500 hover:text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-surface-container dark:bg-white/10 text-sky-400 hover:bg-sky-500/20 transition-colors"
                   title="Telegram Channel"
                 >
                   <Send className="w-4 h-4" />
@@ -73,85 +131,36 @@ export default function Footer() {
               )}
               {settings.instagramLink && (
                 <a
-                  href={settings.instagramLink}
+                  href={formatExternalUrl(settings.instagramLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white transition-colors"
-                  title="Instagram Page"
+                  className="p-2.5 rounded-xl bg-surface-container dark:bg-white/10 text-pink-400 hover:bg-pink-500/20 transition-colors"
+                  title="Instagram"
                 >
                   <Instagram className="w-4 h-4" />
                 </a>
               )}
               {settings.discordLink && (
                 <a
-                  href={settings.discordLink}
+                  href={formatExternalUrl(settings.discordLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-colors"
-                  title="Discord Server"
+                  className="p-2.5 rounded-xl bg-surface-container dark:bg-white/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors"
+                  title="Discord Community"
                 >
-                  <DiscordIcon className="w-4 h-4" />
+                  <Globe className="w-4 h-4" />
                 </a>
               )}
             </div>
           </div>
 
-          {/* QUICK PORTAL LINKS */}
-          <div className="space-y-3">
-            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
-              Student Portals
-            </h4>
-            <ul className="space-y-2 text-xs text-outline dark:text-gray-300 font-medium">
-              <li><Link href="/" className="hover:text-neon-saffron transition-colors">Notice Board & News</Link></li>
-              <li><Link href="/elections" className="hover:text-neon-saffron transition-colors">Elections & Voting Portal</Link></li>
-              <li><Link href="/events" className="hover:text-neon-saffron transition-colors">Campus Events Calendar</Link></li>
-              <li><Link href="/resources" className="hover:text-neon-saffron transition-colors">Academic Study Bank</Link></li>
-              <li><Link href="/hall-of-fame" className="hover:text-neon-saffron transition-colors">Cabinet Ministers & Leaders</Link></li>
-              <li><Link href="/support" className="hover:text-neon-saffron transition-colors">Grievance & Support Desk</Link></li>
-            </ul>
-          </div>
-
-          {/* GOVERNANCE & ADMIN */}
-          <div className="space-y-3">
-            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
-              Governance & Admin
-            </h4>
-            <ul className="space-y-2 text-xs text-outline dark:text-gray-300 font-medium">
-              <li><Link href="/admin" className="hover:text-neon-saffron transition-colors">Master & Sub-Admin Panel</Link></li>
-              <li><Link href="/profile" className="hover:text-neon-saffron transition-colors">Digital Union Pass Card</Link></li>
-              <li><a href="#" className="hover:text-neon-saffron transition-colors">Constitution & Bylaws 2026</a></li>
-              <li><a href="#" className="hover:text-neon-saffron transition-colors">Election Commission Guidelines</a></li>
-            </ul>
-          </div>
-
-          {/* CONTACT DETAILS FROM SUPABASE site_settings */}
-          <div className="space-y-3">
-            <h4 className="font-headline font-bold text-sm text-primary dark:text-white uppercase tracking-wider">
-              Campus Union Office
-            </h4>
-            <div className="space-y-2.5 text-xs text-outline dark:text-gray-300">
-              <div className="flex items-start space-x-2">
-                <MapPin className="w-4 h-4 text-neon-saffron shrink-0 mt-0.5" />
-                <span>{settings.campusAddress || 'IIT Rungta Campus, Bhilai, Chhattisgarh, India 490024'}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-neon-saffron shrink-0" />
-                <span>{settings.contactPhone || '+91 98765 43210'}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4 text-neon-saffron shrink-0" />
-                <span>{settings.contactEmail || 'union@iitrungta.fun'}</span>
-              </div>
-            </div>
-          </div>
-
         </div>
 
-        {/* BOTTOM COPYRIGHT BANNER */}
+        {/* BOTTOM COPYRIGHT & DISCLAIMER NOTICE */}
         <div className="pt-6 border-t border-surface-container dark:border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-outline dark:text-gray-400 gap-4">
-          <p>© 2026 {settings.siteTitle || 'IIT Rungta'} Student Union. All rights reserved. Connected to Supabase DB.</p>
+          <p>© 2026 IIT Rungta Student Union. All rights reserved.</p>
           <div className="flex items-center space-x-1">
-            <span>Designed for Student Welfare & Democracy</span>
+            <span>Built for Skill Testing & Fun Purpose</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" />
           </div>
         </div>

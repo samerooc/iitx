@@ -18,7 +18,9 @@ import {
   Phone,
   BookOpen,
   UserPlus,
-  QrCode
+  QrCode,
+  Instagram,
+  Ghost
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +39,8 @@ export default function ProfilePage() {
     year: userProfile?.year || '1st Year',
     email: userProfile?.email || '',
     phone: userProfile?.phone || '',
+    instaUsername: userProfile?.instaUsername || '',
+    snapUsername: userProfile?.snapUsername || '',
     avatar: userProfile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300'
   });
 
@@ -96,7 +100,7 @@ export default function ProfilePage() {
             <h3 className="font-headline font-bold text-xl text-primary dark:text-white pt-2">
               Create Student Union Digital Pass
             </h3>
-            <p className="text-xs text-outline dark:text-gray-400">Fill in your college details to issue your verified digital pass.</p>
+            <p className="text-xs text-outline dark:text-gray-400">Fill in your college details & social handles to issue your verified digital pass.</p>
           </div>
 
           <form onSubmit={handleCreatePass} className="space-y-4">
@@ -126,7 +130,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Roll Number / Enrollment ID *</label>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Roll Number / Student ID *</label>
                 <input
                   type="text"
                   required
@@ -166,6 +170,30 @@ export default function ProfilePage() {
                   <option value="3rd Year (Batch 2023-27)">3rd Year (Batch 2023-27)</option>
                   <option value="4th Year (Batch 2022-26)">4th Year (Batch 2022-26)</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Instagram Handle (@)</label>
+                <input
+                  type="text"
+                  placeholder="@aarav_iitr"
+                  value={formData.instaUsername}
+                  onChange={(e) => setFormData({ ...formData, instaUsername: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Snapchat Handle (@)</label>
+                <input
+                  type="text"
+                  placeholder="@aarav_snap"
+                  value={formData.snapUsername}
+                  onChange={(e) => setFormData({ ...formData, snapUsername: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
+                />
               </div>
             </div>
 
@@ -245,6 +273,17 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Instagram (@)</label>
+                    <input type="text" value={formData.instaUsername} onChange={(e) => setFormData({ ...formData, instaUsername: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Snapchat (@)</label>
+                    <input type="text" value={formData.snapUsername} onChange={(e) => setFormData({ ...formData, snapUsername: e.target.value })} className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                  </div>
+                </div>
+
                 <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
                   Save Changes
                 </button>
@@ -296,6 +335,23 @@ export default function ProfilePage() {
                   <p className="font-bold text-primary dark:text-white mt-0.5">{userProfile?.year}</p>
                 </div>
               </div>
+
+              {(userProfile?.instaUsername || userProfile?.snapUsername) && (
+                <div className="flex items-center space-x-4 text-xs font-semibold p-3 rounded-xl bg-surface-container/40 dark:bg-white/5 border">
+                  {userProfile?.instaUsername && (
+                    <div className="flex items-center space-x-1 text-pink-400">
+                      <Instagram className="w-3.5 h-3.5" />
+                      <span>{userProfile.instaUsername}</span>
+                    </div>
+                  )}
+                  {userProfile?.snapUsername && (
+                    <div className="flex items-center space-x-1 text-amber-400">
+                      <Ghost className="w-3.5 h-3.5" />
+                      <span>{userProfile.snapUsername}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="p-4 rounded-2xl bg-white text-center space-y-2 shadow-inner">
                 <QRCodeSVG

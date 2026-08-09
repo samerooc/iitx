@@ -1,28 +1,26 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 import { readData, writeData } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function PUT(request, { params }) {
   try {
     const { id } = params;
-    const { status } = await request.json();
+    const body = await request.json();
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
-      await supabase
-        .from('contact_messages')
-        .update({ is_read: status === 'Resolved' })
-        .eq('id', id);
-
+    if (isConfiguredSupabase()) {
+      const isRead = body.status === 'Resolved' || body.isRead || body.is_read;
+      await supabase.from('contact_messages').update({ is_read: isRead }).eq('id', id);
       return NextResponse.json({ success: true });
     }
 
-    let tickets = readData('tickets') || [];
-    tickets = tickets.map((t) => (t.id === id ? { ...t, status } : t));
-    writeData('tickets', tickets);
+    const tickets = readData('tickets') || [];
+    const updated = tickets.map((t) => (t.id === id ? { ...t, ...body } : t));
+    writeData('tickets', updated);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (e) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -31,16 +29,16 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = params;
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       await supabase.from('contact_messages').delete().eq('id', id);
       return NextResponse.json({ success: true });
     }
 
-    let tickets = readData('tickets') || [];
-    tickets = tickets.filter((t) => t.id !== id);
-    writeData('tickets', tickets);
+    const tickets = readData('tickets') || [];
+    const filtered = tickets.filter((t) => t.id !== id);
+    writeData('tickets', filtered);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (e) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
