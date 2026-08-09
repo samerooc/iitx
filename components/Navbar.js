@@ -25,11 +25,12 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '/', label: 'Home & Notices', icon: Bell },
+    { href: '/', label: 'Home', icon: Bell },
+    { href: '/notices', label: 'Notice Board', icon: Bell, badge: 'New' },
     { href: '/elections', label: 'Elections 2026', icon: Vote, badge: 'Live' },
     { href: '/events', label: 'Campus Events', icon: Calendar },
     { href: '/resources', label: 'Study Resources', icon: BookOpen },
-    { href: '/hall-of-fame', label: 'Cabinet & Leaders', icon: Crown },
+    { href: '/hall-of-fame', label: 'Cabinet Leaders', icon: Crown },
     { href: '/support', label: 'Grievance Desk', icon: Bell }
   ];
 

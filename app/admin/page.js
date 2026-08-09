@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatExternalUrl } from '@/lib/utils';
+import ImageCropModal from '@/components/ImageCropModal';
 import {
   Lock,
   Crown,
@@ -34,7 +35,8 @@ import {
   HelpCircle,
   Save,
   Check,
-  X
+  X,
+  Crop
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -91,6 +93,11 @@ export default function AdminPage() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingResource, setEditingResource] = useState(null);
 
+  // Image Cropper Modal State
+  const [cropFile, setCropFile] = useState(null);
+  const [cropTargetCallback, setCropTargetCallback] = useState(null);
+  const [cropAspectRatio, setCropAspectRatio] = useState('1:1');
+
   // New Item Form States
   const [newMinister, setNewMinister] = useState({
     name: '',
@@ -130,18 +137,19 @@ export default function AdminPage() {
     category: 'Notice',
     priority: 'Medium',
     pinned: false,
-    imageUrl: ''
+    imageUrl: '',
+    linkUrl: ''
   });
 
-  const [newPollQ, setNewPollQ] = useState('');
-  const [newPollOpts, setNewPollOpts] = useState(['', '']);
+  const [newBanner, setNewBanner] = useState({
+    title: '',
+    subtitle: '',
+    imageUrl: '',
+    linkUrl: ''
+  });
 
   // Settings local state
   const [settingsForm, setSettingsForm] = useState(settings);
-  const [newFaqQ, setNewFaqQ] = useState('');
-  const [newFaqA, setNewFaqA] = useState('');
-
-  // Upload status
   const [uploading, setUploading] = useState(false);
 
   // LOGIN SUBMIT HANDLER
@@ -154,15 +162,24 @@ export default function AdminPage() {
     }
   };
 
-  // UPLOAD HELPER
-  const handleFileUpload = async (file, callback) => {
+  // TRIGGER IMAGE CROPPER MODAL BEFORE UPLOADING TO SUPABASE
+  const triggerCropper = (file, aspect, callback) => {
     if (!file) return;
+    setCropFile(file);
+    setCropAspectRatio(aspect);
+    setCropTargetCallback(() => callback);
+  };
+
+  const handleCroppedUpload = async (compressedFile) => {
+    setCropFile(null);
     setUploading(true);
     try {
-      const url = await uploadFile(file);
-      callback(url);
+      const url = await uploadFile(compressedFile);
+      if (cropTargetCallback) {
+        cropTargetCallback(url);
+      }
     } catch (err) {
-      alert('File upload failed: ' + err.message);
+      alert('Upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -233,9 +250,9 @@ export default function AdminPage() {
   const tabs = [
     { id: 'students', label: 'Registered Students', icon: Users, perm: 'all' },
     { id: 'ministers', label: 'Cabinet Ministers', icon: Crown, perm: 'ministers' },
+    { id: 'notices', label: 'Notice Board & Banners', icon: Bell, perm: 'notices' },
     { id: 'events', label: 'Campus Events', icon: Calendar, perm: 'events' },
     { id: 'resources', label: 'Study Resources', icon: BookOpen, perm: 'resources' },
-    { id: 'notices', label: 'Notice Board', icon: Bell, perm: 'notices' },
     { id: 'polls', label: 'Polls & Audits', icon: Vote, perm: 'polls' },
     { id: 'tickets', label: 'Grievance Desk', icon: MessageSquare, perm: 'tickets' },
     { id: 'settings', label: 'Site Settings', icon: SettingsIcon, perm: 'settings' }
@@ -244,6 +261,16 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
+      {/* IMAGE CROPPER MODAL POPUP */}
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          aspectRatio={cropAspectRatio}
+          onCropComplete={handleCroppedUpload}
+          onClose={() => setCropFile(null)}
+        />
+      )}
+
       {/* ADMIN HEADER */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-surface-container-high dark:border-white/10">
         <div>
@@ -339,11 +366,10 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 2: CABINET MINISTERS MANAGEMENT */}
+      {/* TAB 2: CABINET MINISTERS MANAGEMENT WITH CROPPER */}
       {activeTab === 'ministers' && (
         <div className="space-y-8">
           
-          {/* ADD / EDIT MINISTER FORM */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
             <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
               <Crown className="w-5 h-5 text-neon-saffron" />
@@ -361,17 +387,7 @@ export default function AdminPage() {
                   addMinister(newMinister);
                   alert('Minister added to Cabinet!');
                 }
-                setNewMinister({
-                  name: '',
-                  portfolio: 'Cabinet Minister',
-                  tagline: '',
-                  description: '',
-                  photo_url: '',
-                  display_order: 1,
-                  instagram_url: '',
-                  twitter_url: '',
-                  linkedin_url: ''
-                });
+                setNewMinister({ name: '', portfolio: 'Cabinet Minister', tagline: '', description: '', photo_url: '', display_order: 1, instagram_url: '', twitter_url: '', linkedin_url: '' });
               }}
               className="space-y-4"
             >
@@ -394,12 +410,13 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Photo URL / Upload</label>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Photo URL / Crop Upload (1:1)</label>
                   <div className="flex items-center space-x-2">
                     <input type="text" value={newMinister.photo_url} onChange={(e) => setNewMinister({ ...newMinister, photo_url: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0">
-                      <Upload className="w-4 h-4" />
-                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files[0], (url) => setNewMinister({ ...newMinister, photo_url: url }))} className="hidden" />
+                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0 flex items-center space-x-1">
+                      <Crop className="w-4 h-4 text-neon-saffron" />
+                      <span>{uploading ? 'Compressing...' : 'Crop & Upload'}</span>
+                      <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '1:1', (url) => setNewMinister((prev) => ({ ...prev, photo_url: url })))} className="hidden" />
                     </label>
                   </div>
                 </div>
@@ -407,7 +424,7 @@ export default function AdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Description / Bio</label>
-                <textarea rows={2} value={newMinister.description} onChange={(e) => setNewMinister({ ...newMinister, description: e.target.value })} placeholder="Brief summary of duties..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                <textarea rows={3} value={newMinister.description} onChange={(e) => setNewMinister({ ...newMinister, description: e.target.value })} placeholder="Full biography & portfolio manifesto statement..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -425,20 +442,12 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 pt-2">
-                <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-                  {editingMinister ? 'Update Minister' : 'Add Minister'}
-                </button>
-                {editingMinister && (
-                  <button type="button" onClick={() => { setEditingMinister(null); setNewMinister({ name: '', portfolio: 'Cabinet Minister', tagline: '', description: '', photo_url: '', display_order: 1, instagram_url: '', twitter_url: '', linkedin_url: '' }); }} className="px-4 py-3 rounded-xl bg-surface-container dark:bg-white/10 text-xs font-bold">
-                    Cancel Edit
-                  </button>
-                )}
-              </div>
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingMinister ? 'Update Minister Profile' : 'Add Minister'}
+              </button>
             </form>
           </div>
 
-          {/* MINISTERS LIST WITH EDIT & DELETE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {ministers.map((m) => (
               <div key={m.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex items-center justify-between">
@@ -450,23 +459,8 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditingMinister(m);
-                      setNewMinister(m);
-                    }}
-                    className="p-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
-                    title="Edit Minister"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteMinister(m.id)}
-                    className="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
-                    title="Delete Minister"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <button onClick={() => { setEditingMinister(m); setNewMinister(m); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteMinister(m.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
@@ -475,7 +469,89 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 3: CAMPUS EVENTS MANAGEMENT */}
+      {/* TAB 3: NOTICE BOARD & BANNERS WITH LINK REDIRECTION & CROPPER */}
+      {activeTab === 'notices' && (
+        <div className="space-y-8">
+          
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Bell className="w-5 h-5 text-neon-saffron" />
+              <span>Publish Official Notice & Banner (With Direct Link)</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addNotice(newNotice);
+                alert('Notice published cleanly with attached link & banner!');
+                setNewNotice({ title: '', content: '', category: 'Notice', priority: 'Medium', pinned: false, imageUrl: '', linkUrl: '' });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Notice Title *</label>
+                  <input type="text" required value={newNotice.title} onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })} placeholder="e.g. Exam Timetable Release 2026" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Target Action Link / File URL</label>
+                  <input type="text" value={newNotice.linkUrl} onChange={(e) => setNewNotice({ ...newNotice, linkUrl: e.target.value })} placeholder="https://iitrungta.fun/portal-link" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
+                  <select value={newNotice.category} onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option value="Notice">Notice</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Elections">Elections</option>
+                    <option value="Events">Events</option>
+                    <option value="Administrative">Administrative</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Banner Photo Crop (16:9)</label>
+                  <div className="flex items-center space-x-2">
+                    <input type="text" value={newNotice.imageUrl} onChange={(e) => setNewNotice({ ...newNotice, imageUrl: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0 flex items-center space-x-1">
+                      <Crop className="w-4 h-4 text-neon-saffron" />
+                      <span>Crop 16:9</span>
+                      <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '16:9', (url) => setNewNotice((prev) => ({ ...prev, imageUrl: url })))} className="hidden" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Content Statement</label>
+                <textarea rows={3} value={newNotice.content} onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                Publish Notice with Direct Link
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {notices.map((n) => (
+              <div key={n.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{n.title}</h4>
+                  <p className="text-xs text-gray-400">{n.category} • {n.linkUrl ? `Link: ${n.linkUrl}` : 'No Link'}</p>
+                </div>
+                <button onClick={() => deleteNotice(n.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      )}
+
+      {/* TAB 4: CAMPUS EVENTS */}
       {activeTab === 'events' && (
         <div className="space-y-8">
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
@@ -505,29 +581,16 @@ export default function AdminPage() {
                   <input type="text" required value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} placeholder="e.g. Annual Cultural Fest 2026" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
-                  <input type="text" value={newEvent.category} onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })} placeholder="Fest / Hackathon / Sports" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Crop Poster Image (16:9)</label>
+                  <div className="flex items-center space-x-2">
+                    <input type="text" value={newEvent.imageUrl} onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0 flex items-center space-x-1">
+                      <Crop className="w-4 h-4 text-neon-saffron" />
+                      <span>Crop 16:9</span>
+                      <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '16:9', (url) => setNewEvent((prev) => ({ ...prev, imageUrl: url })))} className="hidden" />
+                    </label>
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Date</label>
-                  <input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Time</label>
-                  <input type="text" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} placeholder="10:00 AM" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Location</label>
-                  <input type="text" value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Auditorium" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Description</label>
-                <textarea rows={2} value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
               </div>
 
               <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
@@ -553,13 +616,13 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 4: STUDY RESOURCES MANAGEMENT */}
+      {/* TAB 5: STUDY RESOURCES */}
       {activeTab === 'resources' && (
         <div className="space-y-8">
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
             <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
               <BookOpen className="w-5 h-5 text-neon-saffron" />
-              <span>{editingResource ? 'Edit Resource' : 'Upload Study Resource'}</span>
+              <span>{editingResource ? 'Edit Resource' : 'Upload Study Resource PDF'}</span>
             </h3>
 
             <form
@@ -583,7 +646,7 @@ export default function AdminPage() {
                   <input type="text" required value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })} placeholder="e.g. Data Structures Notes PDF" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Download / Drive Link</label>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Download PDF / Drive Link</label>
                   <input type="text" value={newResource.linkUrl} onChange={(e) => setNewResource({ ...newResource, linkUrl: e.target.value })} placeholder="https://drive.google.com/..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
               </div>
@@ -611,7 +674,35 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 5: GRIEVANCE DESK / MESSAGES */}
+      {/* TAB 6: POLLS & AUDITS */}
+      {activeTab === 'polls' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white">Create Campus Poll</h3>
+            <form onSubmit={(e) => { e.preventDefault(); addPoll(newPollQ, newPollOpts.filter(o => o.trim() !== '')); setNewPollQ(''); setNewPollOpts(['', '']); alert('Poll published!'); }} className="space-y-4">
+              <input type="text" required value={newPollQ} onChange={(e) => setNewPollQ(e.target.value)} placeholder="Poll Question..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              {newPollOpts.map((opt, idx) => (
+                <input key={idx} type="text" required value={opt} onChange={(e) => { const updated = [...newPollOpts]; updated[idx] = e.target.value; setNewPollOpts(updated); }} placeholder={`Option ${idx + 1}...`} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              ))}
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">Publish Poll</button>
+            </form>
+          </div>
+
+          <div className="space-y-4">
+            {polls.map((p) => (
+              <div key={p.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{p.question}</h4>
+                  <p className="text-xs text-gray-400">{p.totalVotes || 0} Total Votes</p>
+                </div>
+                <button onClick={() => deletePoll(p.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 7: GRIEVANCE DESK / MESSAGES */}
       {activeTab === 'tickets' && (
         <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
           <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
@@ -638,7 +729,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 6: SITE SETTINGS & MAINTENANCE MODE */}
+      {/* TAB 8: SITE SETTINGS & MAINTENANCE MODE */}
       {activeTab === 'settings' && (
         <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
           <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
@@ -654,7 +745,6 @@ export default function AdminPage() {
             }}
             className="space-y-6"
           >
-            {/* MAINTENANCE MODE TOGGLE */}
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -680,7 +770,6 @@ export default function AdminPage() {
               />
             </div>
 
-            {/* CONTACT DETAILS */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Phone</label>
@@ -693,26 +782,6 @@ export default function AdminPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-1">Campus Address</label>
                 <input type="text" value={settingsForm.campusAddress} onChange={(e) => setSettingsForm({ ...settingsForm, campusAddress: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-            </div>
-
-            {/* SOCIAL MEDIA LINKS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">WhatsApp GC Link</label>
-                <input type="text" value={settingsForm.whatsappGcLink} onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGcLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Telegram Link</label>
-                <input type="text" value={settingsForm.telegramLink} onChange={(e) => setSettingsForm({ ...settingsForm, telegramLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Instagram Link</label>
-                <input type="text" value={settingsForm.instagramLink} onChange={(e) => setSettingsForm({ ...settingsForm, instagramLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Discord Link</label>
-                <input type="text" value={settingsForm.discordLink} onChange={(e) => setSettingsForm({ ...settingsForm, discordLink: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
               </div>
             </div>
 
