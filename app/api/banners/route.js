@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const { data, error } = await supabase
         .from('banners')
         .select('*')
         .order('display_order', { ascending: true });
 
-      if (!error && data) {
+      if (!error && Array.isArray(data)) {
         return NextResponse.json(data);
       }
     }
@@ -24,7 +25,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const { data, error } = await supabase
         .from('banners')
         .insert([
@@ -33,8 +34,7 @@ export async function POST(request) {
             subtitle: body.subtitle || '',
             image_url: body.image_url || body.imageUrl || '',
             link_url: body.link_url || body.linkUrl || '',
-            is_active: true,
-            display_order: body.display_order || 0
+            is_active: true
           }
         ])
         .select()

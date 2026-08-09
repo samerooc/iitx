@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 import { readData, writeData } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const { data, error } = await supabase.from('admin_roles').select('*');
       if (!error && data) {
         const sanitized = data.map(({ password, ...rest }) => rest);
@@ -24,7 +25,7 @@ export async function POST(request) {
   try {
     const newAdmin = await request.json();
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase()) {
       const payload = {
         user_id: crypto.randomUUID(),
         name: newAdmin.name || newAdmin.username,
@@ -41,21 +42,21 @@ export async function POST(request) {
       }
     }
 
-    // Local fallback
     const admins = readData('admins') || [];
-    const adminObj = {
-      id: 'adm-' + Date.now(),
+    const createdAdmin = {
+      id: 'a' + Date.now(),
       username: newAdmin.username,
-      password: newAdmin.password,
       name: newAdmin.name || newAdmin.username,
-      role: 'SUB_ADMIN',
-      permissions: newAdmin.permissions || [],
-      createdAt: new Date().toISOString().split('T')[0]
+      email: newAdmin.email || `${newAdmin.username}@iitrungta.fun`,
+      password: newAdmin.password,
+      role: newAdmin.role || 'SUB_ADMIN',
+      permissions: newAdmin.permissions || ['notices', 'ministers']
     };
-    admins.push(adminObj);
+
+    admins.push(createdAdmin);
     writeData('admins', admins);
 
-    const { password, ...sanitized } = adminObj;
+    const { password, ...sanitized } = createdAdmin;
     return NextResponse.json({ success: true, admin: sanitized });
   } catch (error) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -67,14 +68,15 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    if (isConfiguredSupabase() && id) {
       await supabase.from('admin_roles').delete().eq('id', id);
       return NextResponse.json({ success: true });
     }
 
     let admins = readData('admins') || [];
-    admins = admins.filter((a) => !(a.id === id && a.role === 'MASTER_ADMIN'));
+    admins = admins.filter((a) => a.id !== id);
     writeData('admins', admins);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
