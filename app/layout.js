@@ -5,12 +5,15 @@ import { AppProvider, useApp } from '@/context/AppContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Wrench, ShieldAlert } from 'lucide-react';
 
 function MaintenanceGuard({ children }) {
   const { settings, currentAdmin } = useApp();
+  const pathname = usePathname();
 
-  if (settings.maintenanceMode && !currentAdmin) {
+  // Allow Admin Login page (/admin) even when Maintenance Mode is ON
+  if (settings.maintenanceMode && !currentAdmin && pathname !== '/admin') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-obsidian text-white text-center">
         <div className="max-w-md space-y-6 glass-card p-8 rounded-3xl border border-neon-saffron/40 shadow-2xl">

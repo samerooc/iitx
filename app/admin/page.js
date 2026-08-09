@@ -98,6 +98,11 @@ export default function AdminPage() {
   const [cropTargetCallback, setCropTargetCallback] = useState(null);
   const [cropAspectRatio, setCropAspectRatio] = useState('1:1');
 
+  // FAQ Manager State
+  const [editingFaqIndex, setEditingFaqIndex] = useState(null);
+  const [faqQ, setFaqQ] = useState('');
+  const [faqA, setFaqA] = useState('');
+
   // New Item Form States
   const [newMinister, setNewMinister] = useState({
     name: '',
@@ -141,13 +146,6 @@ export default function AdminPage() {
     linkUrl: ''
   });
 
-  const [newBanner, setNewBanner] = useState({
-    title: '',
-    subtitle: '',
-    imageUrl: '',
-    linkUrl: ''
-  });
-
   // Settings local state
   const [settingsForm, setSettingsForm] = useState(settings);
   const [uploading, setUploading] = useState(false);
@@ -183,6 +181,35 @@ export default function AdminPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // FAQ ACTIONS
+  const handleAddOrUpdateFaq = (e) => {
+    e.preventDefault();
+    if (!faqQ.trim() || !faqA.trim()) return;
+
+    let currentFaqs = [...(settingsForm.helpFaqs || [])];
+    if (editingFaqIndex !== null) {
+      currentFaqs[editingFaqIndex] = { q: faqQ, a: faqA };
+      setEditingFaqIndex(null);
+    } else {
+      currentFaqs.push({ q: faqQ, a: faqA });
+    }
+
+    const updated = { ...settingsForm, helpFaqs: currentFaqs };
+    setSettingsForm(updated);
+    updateSettings(updated);
+
+    setFaqQ('');
+    setFaqA('');
+    alert('FAQ updated & saved to Supabase!');
+  };
+
+  const handleDeleteFaq = (index) => {
+    const currentFaqs = (settingsForm.helpFaqs || []).filter((_, i) => i !== index);
+    const updated = { ...settingsForm, helpFaqs: currentFaqs };
+    setSettingsForm(updated);
+    updateSettings(updated);
   };
 
   // 1. UNAUTHENTICATED LOGIN SCREEN
@@ -255,7 +282,7 @@ export default function AdminPage() {
     { id: 'resources', label: 'Study Resources', icon: BookOpen, perm: 'resources' },
     { id: 'polls', label: 'Polls & Audits', icon: Vote, perm: 'polls' },
     { id: 'tickets', label: 'Grievance Desk', icon: MessageSquare, perm: 'tickets' },
-    { id: 'settings', label: 'Site Settings', icon: SettingsIcon, perm: 'settings' }
+    { id: 'settings', label: 'Site Settings & FAQs', icon: SettingsIcon, perm: 'settings' }
   ];
 
   return (
@@ -366,10 +393,9 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 2: CABINET MINISTERS MANAGEMENT WITH CROPPER */}
+      {/* TAB 2: CABINET MINISTERS MANAGEMENT */}
       {activeTab === 'ministers' && (
         <div className="space-y-8">
-          
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
             <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
               <Crown className="w-5 h-5 text-neon-saffron" />
@@ -396,7 +422,6 @@ export default function AdminPage() {
                   <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Minister Name *</label>
                   <input type="text" required value={newMinister.name} onChange={(e) => setNewMinister({ ...newMinister, name: e.target.value })} placeholder="e.g. Rohan Verma" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Portfolio Title *</label>
                   <input type="text" required value={newMinister.portfolio} onChange={(e) => setNewMinister({ ...newMinister, portfolio: e.target.value })} placeholder="e.g. President / General Secretary" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
@@ -424,22 +449,7 @@ export default function AdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Description / Bio</label>
-                <textarea rows={3} value={newMinister.description} onChange={(e) => setNewMinister({ ...newMinister, description: e.target.value })} placeholder="Full biography & portfolio manifesto statement..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Instagram URL</label>
-                  <input type="text" value={newMinister.instagram_url} onChange={(e) => setNewMinister({ ...newMinister, instagram_url: e.target.value })} placeholder="instagram.com/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Twitter / X URL</label>
-                  <input type="text" value={newMinister.twitter_url} onChange={(e) => setNewMinister({ ...newMinister, twitter_url: e.target.value })} placeholder="twitter.com/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">LinkedIn URL</label>
-                  <input type="text" value={newMinister.linkedin_url} onChange={(e) => setNewMinister({ ...newMinister, linkedin_url: e.target.value })} placeholder="linkedin.com/in/username" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
+                <textarea rows={3} value={newMinister.description} onChange={(e) => setNewMinister({ ...newMinister, description: e.target.value })} placeholder="Full biography statement..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
               </div>
 
               <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
@@ -465,330 +475,135 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
-
         </div>
       )}
 
-      {/* TAB 3: NOTICE BOARD & BANNERS WITH LINK REDIRECTION & CROPPER */}
-      {activeTab === 'notices' && (
+      {/* TAB 8: SITE SETTINGS & FAQ MANAGER */}
+      {activeTab === 'settings' && (
         <div className="space-y-8">
           
+          {/* FAQ MANAGER SECTION */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
             <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-              <Bell className="w-5 h-5 text-neon-saffron" />
-              <span>Publish Official Notice & Banner (With Direct Link)</span>
+              <HelpCircle className="w-5 h-5 text-neon-saffron" />
+              <span>{editingFaqIndex !== null ? 'Edit FAQ Item' : 'Add New FAQ Item'}</span>
             </h3>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                addNotice(newNotice);
-                alert('Notice published cleanly with attached link & banner!');
-                setNewNotice({ title: '', content: '', category: 'Notice', priority: 'Medium', pinned: false, imageUrl: '', linkUrl: '' });
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Notice Title *</label>
-                  <input type="text" required value={newNotice.title} onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })} placeholder="e.g. Exam Timetable Release 2026" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Target Action Link / File URL</label>
-                  <input type="text" value={newNotice.linkUrl} onChange={(e) => setNewNotice({ ...newNotice, linkUrl: e.target.value })} placeholder="https://iitrungta.fun/portal-link" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
-                  <select value={newNotice.category} onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
-                    <option value="Notice">Notice</option>
-                    <option value="Academic">Academic</option>
-                    <option value="Elections">Elections</option>
-                    <option value="Events">Events</option>
-                    <option value="Administrative">Administrative</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Banner Photo Crop (16:9)</label>
-                  <div className="flex items-center space-x-2">
-                    <input type="text" value={newNotice.imageUrl} onChange={(e) => setNewNotice({ ...newNotice, imageUrl: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0 flex items-center space-x-1">
-                      <Crop className="w-4 h-4 text-neon-saffron" />
-                      <span>Crop 16:9</span>
-                      <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '16:9', (url) => setNewNotice((prev) => ({ ...prev, imageUrl: url })))} className="hidden" />
-                    </label>
-                  </div>
-                </div>
+            <form onSubmit={handleAddOrUpdateFaq} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Question Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. How do I vote in Executive Elections?"
+                  value={faqQ}
+                  onChange={(e) => setFaqQ(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Content Statement</label>
-                <textarea rows={3} value={newNotice.content} onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Answer Explanation *</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Detailed answer provided to students..."
+                  value={faqA}
+                  onChange={(e) => setFaqA(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white"
+                />
               </div>
 
-              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-                Publish Notice with Direct Link
-              </button>
+              <div className="flex items-center space-x-3">
+                <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                  {editingFaqIndex !== null ? 'Update FAQ Item' : 'Add FAQ to Support Page'}
+                </button>
+                {editingFaqIndex !== null && (
+                  <button type="button" onClick={() => { setEditingFaqIndex(null); setFaqQ(''); setFaqA(''); }} className="px-4 py-3 rounded-xl bg-surface-container dark:bg-white/10 text-xs font-bold">
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
             </form>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {notices.map((n) => (
-              <div key={n.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-primary dark:text-white">{n.title}</h4>
-                  <p className="text-xs text-gray-400">{n.category} • {n.linkUrl ? `Link: ${n.linkUrl}` : 'No Link'}</p>
-                </div>
-                <button onClick={() => deleteNotice(n.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      )}
-
-      {/* TAB 4: CAMPUS EVENTS */}
-      {activeTab === 'events' && (
-        <div className="space-y-8">
-          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-neon-saffron" />
-              <span>{editingEvent ? 'Edit Campus Event' : 'Add New Campus Event'}</span>
-            </h3>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (editingEvent) {
-                  updateEvent(editingEvent.id, newEvent);
-                  setEditingEvent(null);
-                  alert('Event updated!');
-                } else {
-                  addEvent(newEvent);
-                  alert('Event published!');
-                }
-                setNewEvent({ title: '', category: 'Fest', date: new Date().toISOString().split('T')[0], time: '10:00 AM', location: 'Main Auditorium', organizer: 'Student Executive Council', description: '', imageUrl: '' });
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Event Title *</label>
-                  <input type="text" required value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} placeholder="e.g. Annual Cultural Fest 2026" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Crop Poster Image (16:9)</label>
-                  <div className="flex items-center space-x-2">
-                    <input type="text" value={newEvent.imageUrl} onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                    <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0 flex items-center space-x-1">
-                      <Crop className="w-4 h-4 text-neon-saffron" />
-                      <span>Crop 16:9</span>
-                      <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '16:9', (url) => setNewEvent((prev) => ({ ...prev, imageUrl: url })))} className="hidden" />
-                    </label>
+            <div className="space-y-3 pt-4 border-t border-surface-container dark:border-white/10">
+              <h4 className="font-bold text-sm text-primary dark:text-white uppercase tracking-wider">Active Support FAQs</h4>
+              {(settingsForm.helpFaqs || []).map((faq, idx) => (
+                <div key={idx} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex items-start justify-between gap-4">
+                  <div>
+                    <h5 className="font-bold text-xs text-neon-saffron">{faq.q}</h5>
+                    <p className="text-xs text-gray-300 mt-1">{faq.a}</p>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <button onClick={() => { setEditingFaqIndex(idx); setFaqQ(faq.q); setFaqA(faq.a); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteFaq(idx)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
-              </div>
-
-              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-                {editingEvent ? 'Update Event' : 'Publish Event'}
-              </button>
-            </form>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {events.map((ev) => (
-              <div key={ev.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-primary dark:text-white">{ev.title}</h4>
-                  <p className="text-xs text-gray-400">{ev.date} • {ev.location}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => { setEditingEvent(ev); setNewEvent(ev); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
-                  <button onClick={() => deleteEvent(ev.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: STUDY RESOURCES */}
-      {activeTab === 'resources' && (
-        <div className="space-y-8">
-          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-              <BookOpen className="w-5 h-5 text-neon-saffron" />
-              <span>{editingResource ? 'Edit Resource' : 'Upload Study Resource PDF'}</span>
-            </h3>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (editingResource) {
-                  updateResource(editingResource.id, newResource);
-                  setEditingResource(null);
-                  alert('Resource updated!');
-                } else {
-                  addResource(newResource);
-                  alert('Resource published!');
-                }
-                setNewResource({ title: '', category: 'CS', type: 'PDF', author: 'Academic Cell', linkUrl: '', description: '' });
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Resource Title *</label>
-                  <input type="text" required value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })} placeholder="e.g. Data Structures Notes PDF" className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Download PDF / Drive Link</label>
-                  <input type="text" value={newResource.linkUrl} onChange={(e) => setNewResource({ ...newResource, linkUrl: e.target.value })} placeholder="https://drive.google.com/..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-                </div>
-              </div>
-
-              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-                {editingResource ? 'Update Resource' : 'Add Resource'}
-              </button>
-            </form>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {resources.map((res) => (
-              <div key={res.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-primary dark:text-white">{res.title}</h4>
-                  <p className="text-xs text-gray-400">{res.category} • {res.type}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => { setEditingResource(res); setNewResource(res); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
-                  <button onClick={() => deleteResource(res.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 6: POLLS & AUDITS */}
-      {activeTab === 'polls' && (
-        <div className="space-y-8">
-          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-            <h3 className="font-headline font-bold text-xl text-primary dark:text-white">Create Campus Poll</h3>
-            <form onSubmit={(e) => { e.preventDefault(); addPoll(newPollQ, newPollOpts.filter(o => o.trim() !== '')); setNewPollQ(''); setNewPollOpts(['', '']); alert('Poll published!'); }} className="space-y-4">
-              <input type="text" required value={newPollQ} onChange={(e) => setNewPollQ(e.target.value)} placeholder="Poll Question..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
-              {newPollOpts.map((opt, idx) => (
-                <input key={idx} type="text" required value={opt} onChange={(e) => { const updated = [...newPollOpts]; updated[idx] = e.target.value; setNewPollOpts(updated); }} placeholder={`Option ${idx + 1}...`} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
               ))}
-              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">Publish Poll</button>
+            </div>
+          </div>
+
+          {/* GENERAL SITE SETTINGS & MAINTENANCE TOGGLE */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <SettingsIcon className="w-5 h-5 text-neon-saffron" />
+              <span>General Site Settings & Maintenance Controls</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateSettings(settingsForm);
+                alert('Site settings & maintenance configuration updated successfully!');
+              }}
+              className="space-y-6"
+            >
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wrench className="w-5 h-5 text-amber-400" />
+                    <span className="font-bold text-sm text-white">System Maintenance Mode</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.maintenanceMode}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMode: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-saffron"></div>
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value={settingsForm.maintenanceMessage || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMessage: e.target.value })}
+                  placeholder="Custom Maintenance Banner Message..."
+                  className="w-full px-4 py-2 rounded-xl bg-obsidian/60 border text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Phone</label>
+                  <input type="text" value={settingsForm.contactPhone} onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Email</label>
+                  <input type="text" value={settingsForm.contactEmail} onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Campus Address</label>
+                  <input type="text" value={settingsForm.campusAddress} onChange={(e) => setSettingsForm({ ...settingsForm, campusAddress: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                Save All Site Settings
+              </button>
             </form>
           </div>
 
-          <div className="space-y-4">
-            {polls.map((p) => (
-              <div key={p.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-primary dark:text-white">{p.question}</h4>
-                  <p className="text-xs text-gray-400">{p.totalVotes || 0} Total Votes</p>
-                </div>
-                <button onClick={() => deletePoll(p.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 7: GRIEVANCE DESK / MESSAGES */}
-      {activeTab === 'tickets' && (
-        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-          <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
-            Student Grievance Messages & Inquiries
-          </h3>
-
-          <div className="space-y-4">
-            {tickets.map((tick) => (
-              <div key={tick.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-primary dark:text-white">{tick.name} ({tick.email})</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${tick.isRead || tick.status === 'Resolved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                    {tick.isRead || tick.status === 'Resolved' ? 'Resolved' : 'Unread / Open'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-300">{tick.message}</p>
-                <div className="flex items-center space-x-2 pt-2">
-                  <button onClick={() => updateTicketStatus(tick.id, 'Resolved')} className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold">Mark Resolved</button>
-                  <button onClick={() => deleteTicket(tick.id)} className="px-3 py-1 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-bold">Delete</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 8: SITE SETTINGS & MAINTENANCE MODE */}
-      {activeTab === 'settings' && (
-        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-          <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-            <SettingsIcon className="w-5 h-5 text-neon-saffron" />
-            <span>Site Configuration & Maintenance Controls</span>
-          </h3>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              updateSettings(settingsForm);
-              alert('Site settings & maintenance configuration updated successfully!');
-            }}
-            className="space-y-6"
-          >
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Wrench className="w-5 h-5 text-amber-400" />
-                  <span className="font-bold text-sm text-white">System Maintenance Mode</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settingsForm.maintenanceMode}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMode: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-saffron"></div>
-                </label>
-              </div>
-              <input
-                type="text"
-                value={settingsForm.maintenanceMessage || ''}
-                onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMessage: e.target.value })}
-                placeholder="Custom Maintenance Banner Message..."
-                className="w-full px-4 py-2 rounded-xl bg-obsidian/60 border text-xs text-white"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Phone</label>
-                <input type="text" value={settingsForm.contactPhone} onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Email</label>
-                <input type="text" value={settingsForm.contactEmail} onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Campus Address</label>
-                <input type="text" value={settingsForm.campusAddress} onChange={(e) => setSettingsForm({ ...settingsForm, campusAddress: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-white/5 border text-xs text-white" />
-              </div>
-            </div>
-
-            <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
-              Save All Site Settings
-            </button>
-          </form>
         </div>
       )}
 

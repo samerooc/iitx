@@ -2,248 +2,140 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-
-export const dynamic = 'force-dynamic';
-
 import {
-  ShieldAlert,
+  MessageSquare,
   HelpCircle,
   Phone,
   Mail,
+  MapPin,
   Send,
   CheckCircle2,
-  Lock,
-  MessageSquare,
+  AlertCircle,
+  Clock,
+  Sparkles,
   ChevronDown,
-  ChevronUp,
-  AlertCircle
+  ChevronUp
 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default function SupportPage() {
   const { addTicket, settings } = useApp();
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Hostel & Mess');
-  const [urgency, setUrgency] = useState('Medium');
-  const [description, setDescription] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', subject: 'General Inquiry', category: 'General', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addTicket({
-      title,
-      category,
-      urgency,
-      description,
-      isAnonymous
-    });
+    await addTicket(formData);
     setSubmitted(true);
-    setTitle('');
-    setDescription('');
   };
 
-  const faqs = settings.helpFaqs || [
-    {
-      question: 'IIT Rungta Student Union kya hai?',
-      answer: 'Yeh student body hai jo campus academic welfare, hostel grievances, sports, and cultural festivals manage karti hai.'
-    },
-    {
-      question: 'Grievance support ticket anonymous submit kar sakte hain?',
-      answer: 'Haan, aap anonymous mode toggle karke apni shikayat submit kar sakte hain. Aapki identity privacy completely protect ki jayegi.'
-    }
+  const faqsList = settings.helpFaqs && settings.helpFaqs.length > 0 ? settings.helpFaqs : [
+    { q: 'How do I issue my Digital Union Pass?', a: 'Click "Create Student Pass" in the top bar or visit /profile to register your details & photo.' },
+    { q: 'Is voting anonymous and secure?', a: 'Yes! Every vote is cryptographically hashed and logged with voter verification.' },
+    { q: 'How do I raise a grievance with the Union?', a: 'Fill in the form on this page to send a direct message to the Secretariat.' }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
       
-      {/* HEADER SECTION */}
-      <div className="text-center space-y-3 max-w-3xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 text-rose-500 text-xs font-bold uppercase border border-rose-500/20">
-          <ShieldAlert className="w-4 h-4" />
-          <span>Student Welfare & Grievance Redressal</span>
+      {/* HEADER */}
+      <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-secondary-container/20 text-secondary dark:text-neon-saffron text-xs font-bold uppercase border border-secondary-container/30">
+          <MessageSquare className="w-4 h-4" />
+          <span>24x7 Executive Help & Grievance Desk</span>
         </div>
         <h1 className="font-headline text-3xl sm:text-5xl font-extrabold text-primary dark:text-white">
-          Campus Grievance Desk
+          Support & Student Grievance Desk
         </h1>
         <p className="text-sm sm:text-base text-outline dark:text-gray-300">
-          Have an issue with hostel mess, academic schedule, or campus infrastructure? Submit your ticket directly to the Union Officers.
+          Send direct inquiries or complaints to the Student Union Secretariat. All tickets are logged and triaged by executive officers.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         
         {/* GRIEVANCE FORM */}
-        <div className="lg:col-span-7 glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
-          
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
-              <MessageSquare className="w-5 h-5 text-neon-saffron" />
-              <span>Submit Official Ticket</span>
+        <div className="lg:col-span-7 glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/15 shadow-xl space-y-6">
+          <div className="space-y-1">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
+              Lodge a Grievance or Message
             </h3>
-            <span className="text-xs text-outline dark:text-gray-400">Stores in Supabase contact_messages</span>
+            <p className="text-xs text-outline dark:text-gray-400">
+              Your message will be delivered to the Secretariat and displayed in the Admin Grievance Desk.
+            </p>
           </div>
 
           {submitted ? (
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-3">
-              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-              <h4 className="font-headline font-bold text-lg text-emerald-500">Ticket Submitted Successfully!</h4>
-              <p className="text-xs text-outline dark:text-gray-300">
-                Your grievance has been logged in Supabase database. Union Welfare Secretary will contact you or review the ticket shortly.
+              <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
+              <h4 className="font-bold text-lg text-white">Grievance Ticket Submitted!</h4>
+              <p className="text-xs text-gray-300">
+                Thank you for contacting the Union Secretariat. Your message is recorded in the Admin Desk.
               </p>
               <button
-                onClick={() => setSubmitted(false)}
+                onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', subject: 'General Inquiry', category: 'General', message: '' }); }}
                 className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-xs"
               >
-                Submit Another Ticket
+                Send Another Message
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                  Issue Title / Subject
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Mess Food Quality issue in Hostel B"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
-                />
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
-                  >
-                    <option value="Hostel & Mess">Hostel & Mess</option>
-                    <option value="Academic & Exam">Academic & Exam</option>
-                    <option value="Library & Wi-Fi">Library & Wi-Fi</option>
-                    <option value="Sports & Gym">Sports & Gym</option>
-                    <option value="General Grievance">General Grievance</option>
-                  </select>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Your Full Name *</label>
+                  <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Aarav Sharma" className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                    Urgency Level
-                  </label>
-                  <select
-                    value={urgency}
-                    onChange={(e) => setUrgency(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Urgent">Urgent / High Priority</option>
-                  </select>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">College Email *</label>
+                  <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="aarav@iitrungta.ac.in" className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">
-                  Detailed Description
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Provide specific details about the issue..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white"
-                />
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Message Detail *</label>
+                <textarea rows={4} required value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Describe your grievance or inquiry in detail..." className="w-full px-4 py-2.5 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
               </div>
 
-              <label className="flex items-center space-x-2 cursor-pointer pt-2">
-                <input
-                  type="checkbox"
-                  checked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="rounded text-neon-saffron focus:ring-neon-saffron"
-                />
-                <span className="text-xs font-semibold text-on-surface dark:text-gray-300 flex items-center space-x-1">
-                  <Lock className="w-3.5 h-3.5 text-neon-saffron" />
-                  <span>Submit Anonymously (Hide Roll Number & Name)</span>
-                </span>
-              </label>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron hover:opacity-95"
-              >
-                Log Ticket to Supabase contact_messages
+              <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron flex items-center justify-center space-x-2">
+                <Send className="w-4 h-4" />
+                <span>Submit Message to Secretariat</span>
               </button>
             </form>
           )}
-
         </div>
 
-        {/* HELPLINE CONTACT & FAQS */}
+        {/* FAQS SHOWCASE & CONTACT INFO */}
         <div className="lg:col-span-5 space-y-6">
-          
-          <div className="glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4">
-            <h3 className="font-headline font-bold text-lg text-primary dark:text-white flex items-center space-x-2">
-              <Phone className="w-5 h-5 text-neon-saffron" />
-              <span>Emergency Campus Helpline</span>
-            </h3>
-
-            <div className="space-y-3 text-xs text-outline dark:text-gray-300">
-              <div className="p-3 rounded-2xl bg-surface-container dark:bg-white/5 flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-emerald-500" />
-                <div>
-                  <p className="font-bold text-primary dark:text-white">Union Helpline Phone</p>
-                  <p>{settings.contactPhone || '+91 98765 43210'}</p>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-surface-container dark:bg-white/5 flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-sky-500" />
-                <div>
-                  <p className="font-bold text-primary dark:text-white">Union Official Email</p>
-                  <p>{settings.contactEmail || 'union@iitrungta.fun'}</p>
-                </div>
-              </div>
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/15 space-y-6 shadow-xl">
+            <div className="flex items-center space-x-2">
+              <HelpCircle className="w-6 h-6 text-neon-saffron" />
+              <h3 className="font-headline font-bold text-xl text-primary dark:text-white">
+                Frequently Asked Questions
+              </h3>
             </div>
-          </div>
 
-          {/* DYNAMIC FAQS FROM SUPABASE site_settings */}
-          <div className="glass-card p-6 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-4">
-            <h3 className="font-headline font-bold text-lg text-primary dark:text-white flex items-center space-x-2">
-              <HelpCircle className="w-5 h-5 text-neon-saffron" />
-              <span>Frequently Asked Questions</span>
-            </h3>
-
-            <div className="space-y-2">
-              {faqs.map((faq, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/5 overflow-hidden"
-                >
+            <div className="space-y-3">
+              {faqsList.map((faq, idx) => (
+                <div key={idx} className="p-4 rounded-2xl bg-surface-container/60 dark:bg-white/5 border border-surface-container dark:border-white/10 space-y-2">
                   <button
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                    className="w-full p-4 text-left font-semibold text-xs text-primary dark:text-white flex items-center justify-between"
+                    className="w-full flex items-center justify-between text-left font-bold text-sm text-primary dark:text-white"
                   >
-                    <span>{faq.question}</span>
-                    {openFaq === idx ? <ChevronUp className="w-4 h-4 text-neon-saffron" /> : <ChevronDown className="w-4 h-4 text-outline" />}
+                    <span>{faq.q}</span>
+                    {openFaq === idx ? <ChevronUp className="w-4 h-4 text-neon-saffron shrink-0" /> : <ChevronDown className="w-4 h-4 text-outline shrink-0" />}
                   </button>
                   {openFaq === idx && (
-                    <div className="px-4 pb-4 text-xs text-outline dark:text-gray-300 leading-relaxed border-t border-surface-container-high dark:border-white/5 pt-2">
-                      {faq.answer}
-                    </div>
+                    <p className="text-xs text-outline dark:text-gray-300 leading-relaxed pt-1 border-t border-surface-container dark:border-white/5">
+                      {faq.a}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
           </div>
-
         </div>
 
       </div>
