@@ -529,9 +529,13 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Position *</label>
-                  <select value={newCandidate.position} onChange={(e) => setNewCandidate({ ...newCandidate, position: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
-                    <option>President</option><option>Vice President</option><option>General Secretary</option><option>Cultural Secretary</option>
-                  </select>
+                  <input type="text" list="positions" required value={newCandidate.position} onChange={(e) => setNewCandidate({ ...newCandidate, position: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                  <datalist id="positions">
+                    <option value="President" />
+                    <option value="Vice President" />
+                    <option value="General Secretary" />
+                    <option value="Cultural Secretary" />
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Department</label>

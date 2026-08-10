@@ -72,7 +72,10 @@ export function AppProvider({ children }) {
         fetch('/api/students').then((r) => r.json()).catch(() => [])
       ]);
 
-      if (resSet && !resSet.error) setSettings((prev) => ({ ...prev, ...resSet }));
+      if (resSet && !resSet.error) {
+        setSettings((prev) => ({ ...prev, ...resSet }));
+        localStorage.setItem('iitr_settings', JSON.stringify(resSet));
+      }
       if (Array.isArray(resMin) && resMin.length > 0) setMinisters(resMin);
       if (Array.isArray(resBan) && resBan.length > 0) setBanners(resBan);
       if (Array.isArray(resNot) && resNot.length > 0) setNotices(resNot);
@@ -108,6 +111,14 @@ export function AppProvider({ children }) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+
+    // Settings restore (prevent hydration delay/flicker)
+    const savedSettings = localStorage.getItem('iitr_settings');
+    if (savedSettings) {
+      try {
+        setSettings((prev) => ({ ...prev, ...JSON.parse(savedSettings) }));
+      } catch (e) {}
     }
 
     // Restore Admin Session
