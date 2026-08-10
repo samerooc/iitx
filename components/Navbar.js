@@ -16,7 +16,8 @@ import {
   UserCheck,
   Crown,
   Settings,
-  PlusCircle
+  PlusCircle,
+  MessageSquare
 } from 'lucide-react';
 
 export default function Navbar() {
