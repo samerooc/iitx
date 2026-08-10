@@ -92,6 +92,11 @@ export default function AdminPage() {
   const [editingMinister, setEditingMinister] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingResource, setEditingResource] = useState(null);
+  const [editingNotice, setEditingNotice] = useState(null);
+
+  // Poll Form States
+  const [newPollQuestion, setNewPollQuestion] = useState('');
+  const [newPollOptions, setNewPollOptions] = useState([{ text: '' }, { text: '' }]);
 
   // Image Cropper Modal State
   const [cropFile, setCropFile] = useState(null);
@@ -474,6 +479,315 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: NOTICES */}
+      {activeTab === 'notices' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Bell className="w-5 h-5 text-neon-saffron" />
+              <span>{editingNotice ? 'Edit Notice' : 'Add New Notice'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingNotice) {
+                  // Notice edit isn't fully implemented in AppContext, so fallback to add
+                  deleteNotice(editingNotice.id);
+                  addNotice(newNotice);
+                } else {
+                  addNotice(newNotice);
+                }
+                setNewNotice({ title: '', content: '', category: 'Notice', priority: 'Medium', pinned: false, imageUrl: '', linkUrl: '' });
+                setEditingNotice(null);
+                alert('Notice Saved!');
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Title *</label>
+                <input type="text" required value={newNotice.title} onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Content *</label>
+                <textarea rows={3} required value={newNotice.content} onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
+                  <select value={newNotice.category} onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option>Notice</option>
+                    <option>Alert</option>
+                    <option>Update</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Priority</label>
+                  <select value={newNotice.priority} onChange={(e) => setNewNotice({ ...newNotice, priority: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2 pt-6">
+                  <input type="checkbox" checked={newNotice.pinned} onChange={(e) => setNewNotice({ ...newNotice, pinned: e.target.checked })} />
+                  <span className="text-xs font-bold text-white">Pin Notice</span>
+                </div>
+              </div>
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingNotice ? 'Update Notice' : 'Add Notice'}
+              </button>
+            </form>
+          </div>
+
+          <div className="space-y-4">
+            {notices.map((n) => (
+              <div key={n.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{n.title}</h4>
+                  <p className="text-xs text-gray-400">{n.category} • {n.priority} • {n.pinned ? 'Pinned' : 'Normal'}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => { setEditingNotice(n); setNewNotice(n); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteNotice(n.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: EVENTS */}
+      {activeTab === 'events' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-neon-saffron" />
+              <span>{editingEvent ? 'Edit Event' : 'Add New Event'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingEvent) {
+                  updateEvent(editingEvent.id, newEvent);
+                  setEditingEvent(null);
+                  alert('Event updated!');
+                } else {
+                  addEvent(newEvent);
+                  alert('Event added!');
+                }
+                setNewEvent({ title: '', category: 'Fest', date: new Date().toISOString().split('T')[0], time: '10:00 AM', location: '', organizer: '', description: '', imageUrl: '' });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Title *</label>
+                  <input type="text" required value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
+                  <select value={newEvent.category} onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option>Fest</option>
+                    <option>Seminar</option>
+                    <option>Workshop</option>
+                    <option>Sports</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Date *</label>
+                  <input type="date" required value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Time</label>
+                  <input type="text" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingEvent ? 'Update Event' : 'Add Event'}
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {events.map((ev) => (
+              <div key={ev.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex flex-col justify-between space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-sm text-primary dark:text-white">{ev.title}</h4>
+                    <p className="text-xs text-gray-400">{ev.date} at {ev.time}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <button onClick={() => { setEditingEvent(ev); setNewEvent(ev); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteEvent(ev.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: RESOURCES */}
+      {activeTab === 'resources' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <BookOpen className="w-5 h-5 text-neon-saffron" />
+              <span>{editingResource ? 'Edit Resource' : 'Add New Resource'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingResource) {
+                  updateResource(editingResource.id, newResource);
+                  setEditingResource(null);
+                  alert('Resource updated!');
+                } else {
+                  addResource(newResource);
+                  alert('Resource added!');
+                }
+                setNewResource({ title: '', category: 'CS', type: 'PDF', author: 'Academic Cell', linkUrl: '', description: '' });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Title *</label>
+                  <input type="text" required value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Link URL *</label>
+                  <input type="url" required value={newResource.linkUrl} onChange={(e) => setNewResource({ ...newResource, linkUrl: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Category</label>
+                  <select value={newResource.category} onChange={(e) => setNewResource({ ...newResource, category: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option>CS</option><option>EE</option><option>ME</option><option>CE</option><option>General</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingResource ? 'Update Resource' : 'Add Resource'}
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {resources.map((r) => (
+              <div key={r.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex flex-col justify-between space-y-2">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{r.title}</h4>
+                  <p className="text-xs text-gray-400">{r.category} • {r.type} by {r.author}</p>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <button onClick={() => { setEditingResource(r); setNewResource(r); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteResource(r.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: POLLS */}
+      {activeTab === 'polls' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Vote className="w-5 h-5 text-neon-saffron" />
+              <span>Create New Poll</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const validOptions = newPollOptions.filter(o => o.text.trim());
+                if (validOptions.length < 2) return alert('Need at least 2 options');
+                addPoll(newPollQuestion, validOptions);
+                alert('Poll created!');
+                setNewPollQuestion('');
+                setNewPollOptions([{text: ''}, {text: ''}]);
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Question *</label>
+                <input type="text" required value={newPollQuestion} onChange={(e) => setNewPollQuestion(e.target.value)} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Options</label>
+                {newPollOptions.map((opt, i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <input type="text" required value={opt.text} onChange={(e) => {
+                      const newOpts = [...newPollOptions];
+                      newOpts[i].text = e.target.value;
+                      setNewPollOptions(newOpts);
+                    }} placeholder={`Option ${i + 1}`} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                    {i >= 2 && (
+                      <button type="button" onClick={() => setNewPollOptions(newPollOptions.filter((_, idx) => idx !== i))} className="p-2 bg-rose-500/10 text-rose-400 rounded-xl"><X className="w-4 h-4" /></button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={() => setNewPollOptions([...newPollOptions, {text: ''}])} className="text-xs text-neon-saffron font-bold flex items-center space-x-1 mt-2">
+                  <Plus className="w-3 h-3" /> <span>Add Option</span>
+                </button>
+              </div>
+              
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                Create Poll
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {polls.map((p) => (
+              <div key={p.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex flex-col justify-between space-y-4">
+                <div>
+                  <h4 className="font-bold text-sm text-primary dark:text-white">{p.question}</h4>
+                  <p className="text-xs text-gray-400">{p.totalVotes || 0} Total Votes</p>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <button onClick={() => deletePoll(p.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 7: TICKETS */}
+      {activeTab === 'tickets' && (
+        <div className="space-y-6">
+          <h3 className="font-headline font-bold text-xl text-primary dark:text-white">Grievance Desk Tickets</h3>
+          <div className="grid grid-cols-1 gap-4">
+            {tickets.map((t) => (
+              <div key={t.id} className="p-5 rounded-3xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-sm text-primary dark:text-white">{t.subject}</h4>
+                    <p className="text-xs text-gray-400 font-semibold">{t.authorName} ({t.authorEmail}) • {t.category}</p>
+                  </div>
+                  <span className={`px-2 py-1 text-[10px] font-bold rounded-full border uppercase ${t.status === 'Resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                    {t.status || 'Open'}
+                  </span>
+                </div>
+                <p className="text-xs text-outline dark:text-gray-300">{t.message}</p>
+                <div className="flex items-center space-x-2 pt-2 border-t border-white/10">
+                  {t.status !== 'Resolved' && (
+                    <button onClick={() => updateTicketStatus(t.id, 'Resolved')} className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-xs">Mark Resolved</button>
+                  )}
+                  <button onClick={() => deleteTicket(t.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && <p className="text-gray-400 text-sm">No tickets found.</p>}
           </div>
         </div>
       )}
