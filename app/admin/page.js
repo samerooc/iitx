@@ -77,7 +77,10 @@ export default function AdminPage() {
     adminsList,
     addSubAdmin,
     deleteSubAdmin,
-    uploadFile
+    uploadFile,
+    candidates,
+    addCandidate,
+    deleteCandidate
   } = useApp();
 
   // Login form state
@@ -93,6 +96,16 @@ export default function AdminPage() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingResource, setEditingResource] = useState(null);
   const [editingNotice, setEditingNotice] = useState(null);
+  const [editingCandidate, setEditingCandidate] = useState(null);
+
+  const [newCandidate, setNewCandidate] = useState({
+    name: '',
+    position: 'President',
+    manifesto: '',
+    photo_url: '',
+    department: 'CS',
+    year: '3rd Year'
+  });
 
   // Poll Form States
   const [newPollQuestion, setNewPollQuestion] = useState('');
@@ -239,26 +252,27 @@ export default function AdminPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">Email / Username</label>
+              <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-2">Username / Admin ID *</label>
               <input
                 type="text"
                 required
-                placeholder="master@iitrungta.fun"
+                autoComplete="username"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:border-neon-saffron"
+                className="w-full px-4 py-3 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-neon-saffron"
+                placeholder="master@iitrungta.fun"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">Password</label>
+              <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-2">Master Password *</label>
               <input
                 type="password"
                 required
-                placeholder="••••••••"
+                autoComplete="current-password"
                 value={loginPass}
                 onChange={(e) => setLoginPass(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:border-neon-saffron"
+                className="w-full px-4 py-3 rounded-xl bg-surface-container dark:bg-obsidian/60 border border-surface-container-high dark:border-white/10 text-sm text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-neon-saffron"
+                placeholder="••••••••"
               />
             </div>
 
@@ -282,6 +296,7 @@ export default function AdminPage() {
   const tabs = [
     { id: 'students', label: 'Registered Students', icon: Users, perm: 'all' },
     { id: 'ministers', label: 'Cabinet Ministers', icon: Crown, perm: 'ministers' },
+    { id: 'candidates', label: 'Elections', icon: Vote, perm: 'all' },
     { id: 'notices', label: 'Notice Board & Banners', icon: Bell, perm: 'notices' },
     { id: 'events', label: 'Campus Events', icon: Calendar, perm: 'events' },
     { id: 'resources', label: 'Study Resources', icon: BookOpen, perm: 'resources' },
@@ -482,6 +497,92 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      )}
+
+      {/* TAB: CANDIDATES */}
+      {activeTab === 'candidates' && (
+        <div className="space-y-8">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-surface-container-high dark:border-white/10 space-y-6">
+            <h3 className="font-headline font-bold text-xl text-primary dark:text-white flex items-center space-x-2">
+              <Vote className="w-5 h-5 text-neon-saffron" />
+              <span>{editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}</span>
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editingCandidate) {
+                  deleteCandidate(editingCandidate.id);
+                  addCandidate(newCandidate);
+                } else {
+                  addCandidate(newCandidate);
+                }
+                setNewCandidate({ name: '', position: 'President', manifesto: '', photo_url: '', department: 'CS', year: '3rd Year' });
+                setEditingCandidate(null);
+                alert('Candidate saved!');
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Name *</label>
+                  <input type="text" required value={newCandidate.name} onChange={(e) => setNewCandidate({ ...newCandidate, name: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Position *</label>
+                  <select value={newCandidate.position} onChange={(e) => setNewCandidate({ ...newCandidate, position: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white">
+                    <option>President</option><option>Vice President</option><option>General Secretary</option><option>Cultural Secretary</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Department</label>
+                  <input type="text" value={newCandidate.department} onChange={(e) => setNewCandidate({ ...newCandidate, department: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Year</label>
+                  <input type="text" value={newCandidate.year} onChange={(e) => setNewCandidate({ ...newCandidate, year: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Photo URL</label>
+                <div className="flex items-center space-x-2">
+                  <input type="text" value={newCandidate.photo_url} onChange={(e) => setNewCandidate({ ...newCandidate, photo_url: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+                  <label className="px-3 py-2 rounded-xl bg-surface-container-high dark:bg-white/10 text-xs font-bold cursor-pointer shrink-0">
+                    {uploading ? '...' : 'Crop'}
+                    <input type="file" accept="image/*" onChange={(e) => triggerCropper(e.target.files[0], '1:1', (url) => setNewCandidate((prev) => ({ ...prev, photo_url: url })))} className="hidden" />
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-outline dark:text-gray-300 mb-1">Manifesto</label>
+                <textarea rows={3} value={newCandidate.manifesto} onChange={(e) => setNewCandidate({ ...newCandidate, manifesto: e.target.value })} className="w-full px-4 py-2 rounded-xl bg-surface-container dark:bg-obsidian/60 border text-sm text-on-surface dark:text-white" />
+              </div>
+              <button type="submit" className="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary-container to-neon-saffron text-white font-bold text-sm shadow-glow-saffron">
+                {editingCandidate ? 'Update Candidate' : 'Add Candidate'}
+              </button>
+            </form>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(candidates || []).map((c) => (
+              <div key={c.id} className="p-4 rounded-2xl bg-surface-container dark:bg-white/5 border border-surface-container-high dark:border-white/10 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img src={c.photo_url || c.photoUrl || 'https://via.placeholder.com/50'} alt={c.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-neon-saffron" />
+                  <div>
+                    <h4 className="font-bold text-sm text-primary dark:text-white">{c.name}</h4>
+                    <p className="text-xs text-neon-saffron font-semibold">{c.position}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => { setEditingCandidate(c); setNewCandidate(c); }} className="p-2 rounded-xl bg-amber-500/10 text-amber-400"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => deleteCandidate(c.id)} className="p-2 rounded-xl bg-rose-500/10 text-rose-400"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       {/* TAB 3: NOTICES */}
       {activeTab === 'notices' && (

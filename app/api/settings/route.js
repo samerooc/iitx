@@ -63,6 +63,7 @@ export async function PUT(request) {
         maintenance_mode: updated.maintenanceMode,
         maintenance_message: updated.maintenanceMessage,
         about_text: updated.heroSubtext,
+        help_faqs: updated.helpFaqs,
         updated_at: new Date().toISOString()
       };
 

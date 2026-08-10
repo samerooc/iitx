@@ -30,6 +30,7 @@ export default function Navbar() {
     { href: '/elections', label: 'Elections 2026', icon: Vote, badge: 'Live' },
     { href: '/events', label: 'Campus Events', icon: Calendar },
     { href: '/resources', label: 'Study Resources', icon: BookOpen },
+    { href: '/chat', label: 'Chat Room', icon: MessageSquare },
     { href: '/hall-of-fame', label: 'Cabinet Leaders', icon: Crown },
     { href: '/support', label: 'Grievance Desk', icon: Bell }
   ];
