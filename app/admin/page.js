@@ -497,7 +497,6 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-      )}
 
       {/* TAB: CANDIDATES */}
       {activeTab === 'candidates' && (
