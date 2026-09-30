@@ -1,5 +1,17 @@
 [
   {
+    "id": "r0",
+    "title": "Mathematics for Computing 1: Question Bank & Interactive Practice (Units 1 & 2)",
+    "category": "Academic Notes",
+    "department": "Computer Science & Engineering",
+    "author": "School of CSE / RU-100-15-00030",
+    "fileType": "Interactive Quiz",
+    "fileSize": "194 Questions",
+    "downloads": 4820,
+    "linkUrl": "/question/math",
+    "previewContent": "Mathematics for Computing 1: Linear Algebra & Calculus (RU-100-15-00030)\n- 120 Interactive MCQs with instant tap feedback and explanations\n- 50 Short Answer Questions (4 Marks) with step-by-step proofs\n- 24 Long Comprehensive Questions (10 Marks) with analytical derivations\n- High-Yield Formula Sheet & Syllabus."
+  },
+  {
     "id": "r1",
     "title": "Data Structures & Algorithms - Complete Formula & Code Sheet",
     "category": "Academic Notes",

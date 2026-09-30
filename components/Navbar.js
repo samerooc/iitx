@@ -17,7 +17,8 @@ import {
   Crown,
   Settings,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
+  Calculator
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -31,6 +32,7 @@ export default function Navbar() {
     { href: '/elections', label: 'Elections 2026', icon: Vote, badge: 'Live' },
     { href: '/events', label: 'Campus Events', icon: Calendar },
     { href: '/resources', label: 'Study Resources', icon: BookOpen },
+    { href: '/question/math', label: 'Math Practice', icon: Calculator, badge: 'Quiz' },
     { href: '/chat', label: 'Chat Room', icon: MessageSquare },
     { href: '/hall-of-fame', label: 'Cabinet Leaders', icon: Crown },
     { href: '/support', label: 'Grievance Desk', icon: Bell }

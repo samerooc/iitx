@@ -34,7 +34,7 @@ export async function POST(request) {
 
         return NextResponse.json({
           success: true,
-          url: publicUrlUrlData?.publicUrl || `/uploads/${filename}`
+          url: publicUrlData?.publicUrl || `/uploads/${filename}`
         });
       }
     }
